@@ -1,0 +1,112 @@
+[
+  {
+    "id": "al-001",
+    "type": "overdue_invoice",
+    "title": "Invoice overdue: CloudFirst AG",
+    "message": "Invoice INV-2026-020 (€8,500) from CloudFirst AG is 10 days overdue. 2 reminders sent. Anna promised payment by end of this week.",
+    "severity": "critical",
+    "is_read": false,
+    "related_entity_type": "invoice",
+    "related_entity_id": "inv-006",
+    "created_at": "2026-02-15T08:00:00Z"
+  },
+  {
+    "id": "al-002",
+    "type": "no_reply",
+    "title": "Urgent email needs reply: SmartHome bug report",
+    "message": "Frank Hartmann from SmartHome Systems reported a critical bug — IoT dashboard charts not loading. Investor demo tomorrow. Reply ASAP.",
+    "severity": "critical",
+    "is_read": false,
+    "related_entity_type": "email",
+    "related_entity_id": "e-011",
+    "created_at": "2026-02-15T10:35:00Z"
+  },
+  {
+    "id": "al-003",
+    "type": "reminder",
+    "title": "Tax documents due: March 15",
+    "message": "Your tax accountant needs 2025 filing documents by March 15. Documents needed: invoices, expenses, bank statements, insurance, contracts.",
+    "severity": "warning",
+    "is_read": false,
+    "related_entity_type": "email",
+    "related_entity_id": "e-028",
+    "created_at": "2026-02-15T08:00:00Z"
+  },
+  {
+    "id": "al-004",
+    "type": "no_reply",
+    "title": "No reply: BioPharm Research inquiry",
+    "message": "Dr. Andreas Vogel from BioPharm Research sent a high-value inquiry (€70K+ project) and hasn't received a reply. Respond within 24 hours to maintain momentum.",
+    "severity": "warning",
+    "is_read": false,
+    "related_entity_type": "email",
+    "related_entity_id": "e-019",
+    "created_at": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": "al-005",
+    "type": "anomaly",
+    "title": "Revenue trend: Strong February projected",
+    "message": "Based on current invoices and pipeline, February revenue is projected at €47,200 — a 14% increase over January (€41,300). Keep it up!",
+    "severity": "info",
+    "is_read": true,
+    "related_entity_type": null,
+    "related_entity_id": null,
+    "created_at": "2026-02-14T08:00:00Z"
+  },
+  {
+    "id": "al-006",
+    "type": "no_reply",
+    "title": "Stale lead: FoodTech Berlin",
+    "message": "Sophie Becker from FoodTech Berlin replied to your outreach 4 days ago asking about pricing. No response sent yet.",
+    "severity": "warning",
+    "is_read": true,
+    "related_entity_type": "client",
+    "related_entity_id": "c-011",
+    "created_at": "2026-02-15T08:00:00Z"
+  },
+  {
+    "id": "al-007",
+    "type": "reminder",
+    "title": "Meeting prep: TechVision Partnership Call",
+    "message": "You have a partnership call with Hans Mueller (TechVision) at 10:00 AM today. Prepare annual contract terms and Q1 milestone review.",
+    "severity": "info",
+    "is_read": true,
+    "related_entity_type": "event",
+    "related_entity_id": "ev-002",
+    "created_at": "2026-02-15T07:30:00Z"
+  },
+  {
+    "id": "al-008",
+    "type": "reminder",
+    "title": "Server maintenance: Feb 22",
+    "message": "Hetzner server maintenance scheduled for February 22, 2:00-4:00 AM CET. ~30 minutes expected downtime. Notify affected clients.",
+    "severity": "info",
+    "is_read": true,
+    "related_entity_type": "event",
+    "related_entity_id": "ev-020",
+    "created_at": "2026-02-15T08:00:00Z"
+  },
+  {
+    "id": "al-009",
+    "type": "no_reply",
+    "title": "9 emails need reply",
+    "message": "You have 9 emails flagged as needing a reply: TechVision (contract), CloudFirst (payment), FinanceHub (questions), SecureNet (requirements), MedTech (proposal), SmartHome (bug), DataStream (review), LogiTrans (feedback), RetailMax (rate limits).",
+    "severity": "warning",
+    "is_read": false,
+    "related_entity_type": null,
+    "related_entity_id": null,
+    "created_at": "2026-02-15T08:00:00Z"
+  },
+  {
+    "id": "al-010",
+    "type": "anomaly",
+    "title": "New high-value lead: SecureNet signed",
+    "message": "SecureNet Cyber (€60K) signed NDA and is ready to proceed. This is your largest project to date. Kickoff meeting scheduled Feb 18.",
+    "severity": "info",
+    "is_read": true,
+    "related_entity_type": "client",
+    "related_entity_id": "c-010",
+    "created_at": "2026-02-13T17:00:00Z"
+  }
+]

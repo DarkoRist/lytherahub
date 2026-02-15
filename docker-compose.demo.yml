@@ -1,0 +1,32 @@
+version: "3.8"
+
+# Demo mode overrides — run with:
+# docker-compose -f docker-compose.yml -f docker-compose.demo.yml up --build
+
+services:
+  backend:
+    environment:
+      DEMO_MODE: "true"
+      DATABASE_URL: sqlite+aiosqlite:///./lytherahub_demo.db
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # Disable postgres in demo mode — SQLite is used instead
+  postgres:
+    profiles:
+      - production
+
+  # Disable celery in demo mode — no background tasks needed
+  celery-worker:
+    profiles:
+      - production
+
+  celery-beat:
+    profiles:
+      - production
+
+  # Disable n8n in demo mode
+  n8n:
+    profiles:
+      - production

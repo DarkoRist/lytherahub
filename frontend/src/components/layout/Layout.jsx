@@ -1,16 +1,17 @@
 import { useState } from 'react'
-import { Zap } from 'lucide-react'
+import { X } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import Sidebar from './Sidebar'
 import Header from './Header'
 import AIChatSidebar from '../shared/AIChatSidebar'
 
-function DemoBanner() {
+function DemoBanner({ onDismiss }) {
   return (
-    <div className="bg-brand-600 text-white text-center text-sm py-1.5 px-4">
-      <Zap className="inline h-3.5 w-3.5 mr-1 -mt-0.5" />
-      <span className="font-medium">Demo Mode</span>
-      <span className="hidden sm:inline"> — You're exploring LytheraHub with sample data. No API keys required.</span>
+    <div className="flex items-center justify-center gap-2 bg-slate-100 text-slate-600 text-center text-sm py-1.5 px-4 dark:bg-slate-800 dark:text-slate-400">
+      <span>Demo Mode — Sample data. No API keys required.</span>
+      <button onClick={onDismiss} className="ml-2 rounded p-0.5 hover:bg-slate-200 dark:hover:bg-slate-700">
+        <X className="h-3.5 w-3.5" />
+      </button>
     </div>
   )
 }
@@ -18,12 +19,13 @@ function DemoBanner() {
 export default function Layout({ children }) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [showDemoBanner, setShowDemoBanner] = useState(true)
   const { user } = useAuth()
   const isDemoUser = user?.email === 'demo@lytherahub.ai'
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      {isDemoUser && <DemoBanner />}
+      {isDemoUser && showDemoBanner && <DemoBanner onDismiss={() => setShowDemoBanner(false)} />}
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
 
       {/* Mobile sidebar overlay */}

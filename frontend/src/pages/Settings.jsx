@@ -1,20 +1,14 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import {
-  User,
-  Link2,
-  Bell,
-  CreditCard,
   Mail,
   Calendar,
   HardDrive,
   MessageSquare,
   CheckCircle2,
   XCircle,
-  Globe,
-  Clock,
+  CreditCard,
   Zap,
-  ExternalLink,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -27,10 +21,10 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState('profile')
 
   const tabs = [
-    { key: 'profile', label: 'Profile', icon: User },
-    { key: 'integrations', label: 'Integrations', icon: Link2 },
-    { key: 'notifications', label: 'Notifications', icon: Bell },
-    { key: 'billing', label: 'Billing', icon: CreditCard },
+    { key: 'profile', label: 'Profile' },
+    { key: 'integrations', label: 'Integrations' },
+    { key: 'notifications', label: 'Notifications' },
+    { key: 'billing', label: 'Billing' },
   ]
 
   return (
@@ -44,17 +38,16 @@ export default function Settings() {
 
       {/* Tab navigation */}
       <div className="flex items-center gap-1 border-b border-slate-200 dark:border-slate-700">
-        {tabs.map(({ key, label, icon: Icon }) => (
+        {tabs.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               activeTab === key
                 ? 'border-brand-600 text-brand-600 dark:text-brand-400'
                 : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
             }`}
           >
-            <Icon className="h-4 w-4" />
             {label}
           </button>
         ))}
@@ -84,7 +77,7 @@ function ProfileTab({ user }) {
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-4xl space-y-6">
       <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
         <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Profile Information</h3>
 
@@ -153,7 +146,7 @@ function IntegrationsTab() {
   ]
 
   return (
-    <div className="max-w-2xl space-y-4">
+    <div className="max-w-4xl space-y-4">
       {integrations.map((integration) => {
         const Icon = integration.icon
         return (
@@ -223,7 +216,7 @@ function NotificationsTab() {
   const set = (key) => (e) => setSettings((s) => ({ ...s, [key]: e.target.value }))
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-4xl space-y-6">
       <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
         <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Alert Channels</h3>
         <div className="space-y-4">
@@ -279,12 +272,12 @@ function NotificationsTab() {
 
 function BillingTab() {
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-4xl space-y-6">
       {/* Current plan */}
-      <div className="rounded-xl border-2 border-brand-200 bg-gradient-to-br from-brand-50 to-blue-50 p-6 dark:border-brand-800 dark:from-brand-900/20 dark:to-blue-900/20">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <span className="rounded-full bg-brand-600 px-3 py-0.5 text-xs font-semibold text-white">Pro Plan</span>
+            <span className="inline-flex items-center rounded-md bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700 ring-1 ring-inset ring-brand-600/20 dark:bg-brand-900/30 dark:text-brand-400">Pro Plan</span>
             <h3 className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">€49<span className="text-sm font-normal text-slate-500">/month</span></h3>
           </div>
           <Zap className="h-8 w-8 text-brand-600 dark:text-brand-400" />

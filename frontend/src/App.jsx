@@ -15,6 +15,9 @@ import Reports from './pages/Reports'
 import Analytics from './pages/Analytics'
 import Automations from './pages/Automations'
 import Settings from './pages/Settings'
+import PrivacyPolicy from './pages/legal/PrivacyPolicy'
+import TermsOfService from './pages/legal/TermsOfService'
+import CookiePolicy from './pages/legal/CookiePolicy'
 
 function AppLayout({ children }) {
   return (
@@ -29,6 +32,9 @@ function App() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/cookies" element={<CookiePolicy />} />
       <Route path="/onboarding" element={<ProtectedRoute><OnboardingWizard /></ProtectedRoute>} />
       <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
       <Route path="/inbox" element={<AppLayout><Inbox /></AppLayout>} />

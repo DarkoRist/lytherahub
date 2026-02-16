@@ -10,6 +10,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  CheckSquare,
+  LineChart,
 } from 'lucide-react'
 
 const navItems = [
@@ -18,6 +20,8 @@ const navItems = [
   { to: '/calendar', icon: Calendar, label: 'Calendar' },
   { to: '/invoices', icon: Receipt, label: 'Invoices' },
   { to: '/clients', icon: Users, label: 'Clients' },
+  { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
+  { to: '/analytics', icon: LineChart, label: 'Analytics' },
   { to: '/reports', icon: BarChart3, label: 'Reports' },
   { to: '/automations', icon: Zap, label: 'Automations' },
   { to: '/settings', icon: Settings, label: 'Settings' },

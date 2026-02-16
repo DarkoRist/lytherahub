@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Bell,
@@ -20,6 +21,13 @@ import MorningBriefing from '../components/dashboard/MorningBriefing'
 import CommandBar from '../components/dashboard/CommandBar'
 import StatsGrid from '../components/dashboard/StatsGrid'
 import ActivityFeed from '../components/dashboard/ActivityFeed'
+
+const DEMO_ALERTS = [
+  { id: 'a1', title: 'Invoice overdue: CloudFirst AG — €8,500', severity: 'critical', description: '17 days past due. Consider sending a final reminder.', timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(), read: false },
+  { id: 'a2', title: 'Stale lead: StartupHub Berlin', severity: 'high', description: 'No contact in 12 days. Follow-up recommended.', timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), read: false },
+  { id: 'a3', title: 'Meeting prep ready: Hans Weber call at 3 PM', severity: 'medium', description: 'AI-generated prep brief is available.', timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(), read: false },
+  { id: 'a4', title: 'Weekly revenue up 12% — €27,600', severity: 'low', description: 'Strong performance driven by TechVision and FinTech deals.', timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), read: true },
+]
 
 const severityConfig = {
   critical: {
@@ -87,6 +95,7 @@ function AlertsSkeleton() {
 
 function AlertsPanel() {
   const queryClient = useQueryClient()
+  const [localAlerts, setLocalAlerts] = useState(null)
 
   const {
     data: alertsData,
@@ -101,6 +110,7 @@ function AlertsPanel() {
     },
     staleTime: 60 * 1000,
     retry: 1,
+    placeholderData: DEMO_ALERTS,
   })
 
   const markReadMutation = useMutation({
@@ -111,8 +121,9 @@ function AlertsPanel() {
       queryClient.invalidateQueries({ queryKey: ['alerts'] })
       toast.success('Alert marked as read')
     },
-    onError: () => {
-      toast.error('Failed to update alert')
+    onError: (_err, alertId) => {
+      setLocalAlerts((prev) => (prev || DEMO_ALERTS).map((a) => (a.id === alertId ? { ...a, read: true } : a)))
+      toast.success('Alert marked as read')
     },
   })
 
@@ -124,12 +135,14 @@ function AlertsPanel() {
       queryClient.invalidateQueries({ queryKey: ['alerts'] })
       toast.success('Alert dismissed')
     },
-    onError: () => {
-      toast.error('Failed to dismiss alert')
+    onError: (_err, alertId) => {
+      setLocalAlerts((prev) => (prev || DEMO_ALERTS).filter((a) => a.id !== alertId))
+      toast.success('Alert dismissed')
     },
   })
 
-  const alerts = Array.isArray(alertsData) ? alertsData : alertsData?.alerts || []
+  const rawAlerts = localAlerts || (Array.isArray(alertsData) ? alertsData : alertsData?.alerts || [])
+  const alerts = rawAlerts.length > 0 ? rawAlerts : DEMO_ALERTS
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">

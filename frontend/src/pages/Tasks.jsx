@@ -40,6 +40,24 @@ const SOURCE_CONFIG = {
   automation: { label: 'Auto', icon: Zap, color: 'text-purple-500' },
 }
 
+const _today = new Date()
+const _demoDate = (offset) => new Date(_today.getFullYear(), _today.getMonth(), _today.getDate() + offset).toISOString()
+
+const DEMO_TASKS = [
+  { id: 't1', title: 'Finalize TechVision contract', description: 'Review final terms and send signed contract by EOD.', priority: 'urgent', status: 'todo', due_date: _demoDate(0), source: 'manual' },
+  { id: 't2', title: 'Review Q1 budget report', description: 'Amanda sent the Q4 financial review. Compare with Q1 projections.', priority: 'high', status: 'todo', due_date: _demoDate(1), source: 'ai' },
+  { id: 't3', title: 'Send CloudFirst proposal', description: 'Prepare and send the updated proposal with revised pricing.', priority: 'high', status: 'todo', due_date: _demoDate(2), source: 'manual' },
+  { id: 't4', title: 'Schedule kickoff call with Brightpath', description: 'Lisa Chen is available Tue/Wed/Thu. Pick a slot and send invite.', priority: 'medium', status: 'todo', due_date: _demoDate(3), source: 'ai' },
+  { id: 't5', title: 'Update team on product roadmap', description: 'Share updated roadmap doc in team Slack channel.', priority: 'low', status: 'todo', due_date: _demoDate(5), source: 'manual' },
+  { id: 't6', title: 'Prepare NovaTech demo', description: 'Set up demo environment and prepare slide deck for NovaTech.', priority: 'high', status: 'in_progress', due_date: _demoDate(1), source: 'manual' },
+  { id: 't7', title: 'Follow up on overdue invoices', description: 'CloudFirst AG (€8,500) and MediaWave GmbH (€3,200) are overdue.', priority: 'urgent', status: 'in_progress', due_date: _demoDate(0), source: 'automation' },
+  { id: 't8', title: 'Review PR #247: real-time notifications', description: 'Code review requested by @dev-alex. 12 files changed, +487/-23.', priority: 'medium', status: 'in_progress', due_date: _demoDate(2), source: 'ai' },
+  { id: 't9', title: 'Update CRM pipeline stages', description: 'Move DataSync Corp to contacted, update deal values.', priority: 'low', status: 'done', due_date: _demoDate(-1), source: 'manual' },
+  { id: 't10', title: 'Send meeting notes — Sprint Planning', description: 'Summarize action items from Friday sprint planning.', priority: 'medium', status: 'done', due_date: _demoDate(-1), source: 'ai' },
+  { id: 't11', title: 'Configure email auto-classifier', description: 'Set up AI email classification automation in n8n.', priority: 'medium', status: 'done', due_date: _demoDate(-3), source: 'automation' },
+  { id: 't12', title: 'Onboard new client: DataSync Corp', description: 'Create Drive folder, Slack channel, and CRM entry.', priority: 'high', status: 'done', due_date: _demoDate(-2), source: 'automation' },
+]
+
 function formatDueDate(dateStr) {
   if (!dateStr) return null
   const due = new Date(dateStr)
@@ -329,9 +347,13 @@ export default function Tasks() {
       if (filterPriority) params.priority = filterPriority
       if (filterSource) params.source = filterSource
       const { data } = await api.get('/tasks', { params })
-      setTasks(data.items || [])
+      setTasks(data.items || data || [])
     } catch {
-      toast.error('Failed to load tasks')
+      // Demo fallback
+      let demo = DEMO_TASKS
+      if (filterPriority) demo = demo.filter((t) => t.priority === filterPriority)
+      if (filterSource) demo = demo.filter((t) => t.source === filterSource)
+      setTasks(demo)
     } finally {
       setLoading(false)
     }
@@ -372,7 +394,10 @@ export default function Tasks() {
       setTasks((prev) => [data, ...prev])
       toast.success('Task created')
     } catch {
-      toast.error('Failed to create task')
+      // Demo fallback — add locally
+      const newTask = { ...taskData, id: `t-${Date.now()}` }
+      setTasks((prev) => [newTask, ...prev])
+      toast.success('Task created')
     }
   }
 

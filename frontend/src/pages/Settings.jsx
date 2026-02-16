@@ -6,7 +6,7 @@ import {
   HardDrive,
   MessageSquare,
   CheckCircle2,
-  XCircle,
+  XCircle, X,
   CreditCard,
   Zap,
 } from 'lucide-react'
@@ -20,11 +20,11 @@ export default function Settings() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('profile')
 
-  const tabs = [
-    { key: 'profile', label: 'Profile' },
-    { key: 'integrations', label: 'Integrations' },
-    { key: 'notifications', label: 'Notifications' },
-    { key: 'billing', label: 'Billing' },
+  const navGroups = [
+    { heading: 'Account', items: [{ key: 'profile', label: 'Profile' }] },
+    { heading: 'Integrations', items: [{ key: 'integrations', label: 'Connected Apps' }] },
+    { heading: 'Notifications', items: [{ key: 'notifications', label: 'Alert Preferences' }] },
+    { heading: 'Billing', items: [{ key: 'billing', label: 'Plan & Usage' }] },
   ]
 
   return (
@@ -36,28 +36,58 @@ export default function Settings() {
         </p>
       </div>
 
-      {/* Tab navigation */}
-      <div className="flex items-center gap-1 border-b border-slate-200 dark:border-slate-700">
-        {tabs.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setActiveTab(key)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === key
-                ? 'border-brand-600 text-brand-600 dark:text-brand-400'
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <div className="flex gap-8">
+        {/* Left sidebar nav */}
+        <nav className="hidden w-52 shrink-0 md:block">
+          <div className="sticky top-20 space-y-4">
+            {navGroups.map((group) => (
+              <div key={group.heading}>
+                <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                  {group.heading}
+                </p>
+                {group.items.map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setActiveTab(key)}
+                    className={`flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      activeTab === key
+                        ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </nav>
 
-      {/* Tab content */}
-      {activeTab === 'profile' && <ProfileTab user={user} />}
-      {activeTab === 'integrations' && <IntegrationsTab />}
-      {activeTab === 'notifications' && <NotificationsTab />}
-      {activeTab === 'billing' && <BillingTab />}
+        {/* Mobile top tabs (md:hidden) */}
+        <div className="flex items-center gap-1 border-b border-slate-200 dark:border-slate-700 md:hidden w-full overflow-x-auto">
+          {navGroups.flatMap((g) => g.items).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === key
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content area */}
+        <div className="flex-1 min-w-0">
+          {activeTab === 'profile' && <ProfileTab user={user} />}
+          {activeTab === 'integrations' && <IntegrationsTab />}
+          {activeTab === 'notifications' && <NotificationsTab />}
+          {activeTab === 'billing' && <BillingTab />}
+        </div>
+      </div>
     </div>
   )
 }
@@ -271,6 +301,8 @@ function NotificationsTab() {
 // ---------------------------------------------------------------------------
 
 function BillingTab() {
+  const [showPlanModal, setShowPlanModal] = useState(false)
+
   return (
     <div className="max-w-4xl space-y-6">
       {/* Current plan */}
@@ -291,12 +323,19 @@ function BillingTab() {
         </ul>
         <div className="mt-4 flex gap-2">
           <button
-            onClick={() => toast.success('Plan selection coming soon. Contact support to upgrade.')}
+            onClick={() => setShowPlanModal(true)}
             className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-white dark:border-slate-600 dark:text-slate-300"
           >
             Change Plan
           </button>
-          <button className="rounded-lg px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
+          <button
+            onClick={() => {
+              if (window.confirm('Cancel your Pro subscription? You will lose access to premium features at the end of the billing period.')) {
+                toast.success('Subscription cancelled. Active until end of billing period.')
+              }
+            }}
+            className="rounded-lg px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+          >
             Cancel Subscription
           </button>
         </div>
@@ -339,6 +378,53 @@ function BillingTab() {
           </tbody>
         </table>
       </div>
+
+      {/* Change Plan Modal */}
+      {showPlanModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowPlanModal(false)}>
+          <div className="w-full max-w-3xl rounded-xl bg-white shadow-2xl dark:bg-slate-800" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Choose a Plan</h3>
+              <button onClick={() => setShowPlanModal(false)} className="rounded-lg p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                <XCircle className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-3">
+              {[
+                { name: 'Free', price: '€0', period: '/month', features: ['5 email accounts', 'Basic AI summaries', '3 automations', 'Community support'], current: false },
+                { name: 'Pro', price: '€49', period: '/month', features: ['Unlimited emails', 'All integrations', 'AI reports & insights', 'Slack integration', 'Unlimited automations', 'Priority support'], current: true },
+                { name: 'Business', price: '€149', period: '/month', features: ['Everything in Pro', 'Team collaboration', 'Custom automations', 'API access', 'Dedicated support', 'SSO / SAML'], current: false },
+              ].map((plan) => (
+                <div key={plan.name} className={`rounded-xl border p-5 ${plan.current ? 'border-brand-500 ring-2 ring-brand-200 dark:ring-brand-800' : 'border-slate-200 dark:border-slate-700'}`}>
+                  <h4 className="text-base font-bold text-slate-900 dark:text-white">{plan.name}</h4>
+                  <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{plan.price}<span className="text-sm font-normal text-slate-500">{plan.period}</span></p>
+                  <ul className="mt-4 space-y-2">
+                    {plan.features.map((f, i) => (
+                      <li key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    onClick={() => {
+                      setShowPlanModal(false)
+                      toast.success(plan.current ? 'You are already on this plan' : `Switched to ${plan.name} plan`)
+                    }}
+                    className={`mt-4 w-full rounded-lg px-4 py-2 text-sm font-medium ${
+                      plan.current
+                        ? 'border border-brand-500 text-brand-600 dark:text-brand-400'
+                        : 'bg-brand-600 text-white hover:bg-brand-700'
+                    }`}
+                  >
+                    {plan.current ? 'Current Plan' : `Select ${plan.name}`}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

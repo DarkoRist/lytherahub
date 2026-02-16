@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { Sparkles, Send, Trash2, Loader2 } from 'lucide-react'
+import { Sparkles, Send, Trash2, Loader2, Copy } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../api/client'
 import { classNames } from '../../utils/helpers'
@@ -159,6 +159,18 @@ export default function ReplyDraft({ emailId, onSend }) {
                   <Sparkles className="h-4 w-4" />
                 )}
                 Regenerate
+              </button>
+
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(replyBody)
+                  toast.success('Copied to clipboard')
+                }}
+                disabled={!replyBody.trim()}
+                className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+              >
+                <Copy className="h-4 w-4" />
+                Copy
               </button>
 
               <button

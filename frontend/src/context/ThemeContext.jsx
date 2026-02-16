@@ -10,7 +10,11 @@ export function ThemeProvider({ children }) {
   })
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark)
+    if (dark) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
     localStorage.setItem('lytherahub_theme', dark ? 'dark' : 'light')
   }, [dark])
 

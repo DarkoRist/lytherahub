@@ -12,19 +12,40 @@ import {
   ChevronRight,
   CheckSquare,
   LineChart,
+  FileText,
 } from 'lucide-react'
 
-const navItems = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/inbox', icon: Mail, label: 'Inbox' },
-  { to: '/calendar', icon: Calendar, label: 'Calendar' },
-  { to: '/invoices', icon: Receipt, label: 'Invoices' },
-  { to: '/clients', icon: Users, label: 'Clients' },
-  { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
-  { to: '/analytics', icon: LineChart, label: 'Analytics' },
-  { to: '/reports', icon: BarChart3, label: 'Reports' },
-  { to: '/automations', icon: Zap, label: 'Automations' },
-  { to: '/settings', icon: Settings, label: 'Settings' },
+const navGroups = [
+  {
+    label: 'MAIN',
+    items: [
+      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/inbox', icon: Mail, label: 'Inbox' },
+      { to: '/calendar', icon: Calendar, label: 'Calendar' },
+    ],
+  },
+  {
+    label: 'WORK',
+    items: [
+      { to: '/invoices', icon: Receipt, label: 'Invoices' },
+      { to: '/clients', icon: Users, label: 'Clients' },
+      { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
+    ],
+  },
+  {
+    label: 'INSIGHTS',
+    items: [
+      { to: '/analytics', icon: LineChart, label: 'Analytics' },
+      { to: '/reports', icon: BarChart3, label: 'Reports' },
+      { to: '/automations', icon: Zap, label: 'Automations' },
+    ],
+  },
+  {
+    label: 'SYSTEM',
+    items: [
+      { to: '/settings', icon: Settings, label: 'Settings' },
+    ],
+  },
 ]
 
 export default function Sidebar({ collapsed, onToggle }) {
@@ -36,7 +57,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     >
       {/* Logo */}
       <Link to="/" className="flex h-16 items-center gap-2 border-b border-slate-200 px-4 dark:border-slate-700">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
           <Zap className="h-4 w-4" />
         </div>
         {!collapsed && (
@@ -45,22 +66,36 @@ export default function Sidebar({ collapsed, onToggle }) {
       </Link>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-1 overflow-y-auto p-2">
-        {navItems.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
-              }`
-            }
-          >
-            <Icon className="h-5 w-5 shrink-0" />
-            {!collapsed && <span>{label}</span>}
-          </NavLink>
+      <nav className="flex-1 overflow-y-auto px-2 py-2">
+        {navGroups.map((group) => (
+          <div key={group.label}>
+            {!collapsed && (
+              <p className="mt-4 mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                {group.label}
+              </p>
+            )}
+            {collapsed && group.label !== 'MAIN' && (
+              <div className="my-2 mx-2 border-t border-slate-200 dark:border-slate-700" />
+            )}
+            <div className="space-y-0.5">
+              {group.items.map(({ to, icon: Icon, label }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'border-l-2 border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                        : 'border-l-2 border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
+                    }`
+                  }
+                >
+                  <Icon className="h-5 w-5 shrink-0" />
+                  {!collapsed && <span>{label}</span>}
+                </NavLink>
+              ))}
+            </div>
+          </div>
         ))}
       </nav>
 

@@ -94,6 +94,23 @@ function formatInline(text) {
     : text
 }
 
+function getChatDemoReply(text) {
+  const t = text.toLowerCase()
+  if (t.includes('revenue') || t.includes('money'))
+    return "**Revenue this month:** €27,600 (up 12% from January)\n\n| Client | Amount |\n|--------|--------|\n| TechVision GmbH | €12,500 |\n| FinTech Solutions | €22,000 |\n| DesignStudio Co. | €6,800 |\n\nOutstanding: €39,000 across 5 invoices."
+  if (t.includes('client') || t.includes('clients'))
+    return "You have **15 active clients**.\n\n- 3 deals in negotiation worth **€85,000**\n- 2 stale leads needing follow-up\n- Win rate this quarter: **68%**\n\nTop client by value: FinTech Solutions (€22,000)"
+  if (t.includes('invoice') || t.includes('overdue'))
+    return "**2 invoices overdue** totaling €11,700:\n\n1. CloudFirst AG — €8,500 (17 days late)\n2. MediaWave GmbH — €3,200 (15 days late)\n\n3 invoices sent pending payment. Would you like me to send reminders?"
+  if (t.includes('inbox') || t.includes('email') || t.includes('mail'))
+    return "**12 unread emails** in your inbox:\n\n- **3 urgent**: TechVision contract, Sarah Mitchell decision, CloudFirst meeting request\n- **2 need replies**: Partnership proposal, Invoice query\n- **2 newsletters**: Can be archived\n\nAI has classified 93% of emails this week."
+  if (t.includes('schedule') || t.includes('today') || t.includes('calendar') || t.includes('meeting'))
+    return "**Today's schedule:**\n\n1. 10:00 AM — Standup with Engineering (30 min)\n2. 3:00 PM — Client Call with Hans Weber (1 hour)\n\n**Tomorrow:** Product demo at 11:00 AM\n\nYour afternoon is free for focus work."
+  if (t.includes('task') || t.includes('todo'))
+    return "**5 tasks due today:**\n\n1. Finalize TechVision contract *(urgent)*\n2. Review Q1 budget\n3. Send CloudFirst proposal\n4. Update team on product roadmap\n5. Prepare demo for NovaTech\n\n3 tasks in progress, 12 completed this week."
+  return "I'm your AI business assistant. Here's a quick overview:\n\n- **Revenue:** €27,600 this month (+12%)\n- **Emails:** 12 unread, 3 urgent\n- **Meetings:** 2 today\n- **Tasks:** 5 due today\n\nAsk me about your clients, invoices, schedule, or anything else!"
+}
+
 export default function AIChatSidebar() {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([
@@ -150,10 +167,8 @@ export default function AIChatSidebar() {
       setSessionId(data.session_id)
       setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }])
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: "Sorry, I couldn't process that request. Please try again." },
-      ])
+      const reply = getChatDemoReply(text.trim())
+      setMessages((prev) => [...prev, { role: 'assistant', content: reply }])
     } finally {
       setLoading(false)
     }

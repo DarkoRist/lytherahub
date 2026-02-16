@@ -4,7 +4,7 @@ import math
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user
@@ -48,7 +48,7 @@ async def get_today_tasks(
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     today_end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
 
-    priority_order = func.case(
+    priority_order = case(
         (Task.priority == "urgent", 0),
         (Task.priority == "high", 1),
         (Task.priority == "medium", 2),
@@ -127,7 +127,7 @@ async def list_tasks(
     total = (await db.execute(count_query)).scalar() or 0
 
     # Sort: priority first, then due date
-    priority_order = func.case(
+    priority_order = case(
         (Task.priority == "urgent", 0),
         (Task.priority == "high", 1),
         (Task.priority == "medium", 2),

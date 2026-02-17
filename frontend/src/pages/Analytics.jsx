@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import {
   TrendingUp,
   TrendingDown,
@@ -14,6 +15,9 @@ import {
   BarChart3,
   PieChart as PieIcon,
   Activity,
+  Target,
+  Lightbulb,
+  ArrowRight,
 } from 'lucide-react'
 import {
   BarChart,
@@ -124,12 +128,14 @@ const DEMO_PRODUCTIVITY = {
 
 const DEMO_INSIGHTS = {
   insights: [
-    { type: 'positive', title: 'Revenue up 12% this month', message: 'Driven by 3 new SaaS client deals. TechVision GmbH and CloudFirst are your top contributors.' },
-    { type: 'positive', title: 'Email response time improved 30%', message: 'AI email classification and draft replies are saving an average of 45 minutes per day.' },
-    { type: 'warning', title: '2 overdue invoices need attention', message: 'CloudFirst Solutions (EUR 8,500) and Nordic Retail (EUR 1,200) have overdue payments.' },
-    { type: 'warning', title: '3 stale leads need follow-up', message: "These leads haven't been contacted in over 7 days. Reach out to keep the pipeline moving." },
-    { type: 'info', title: 'Recommendation: Focus on enterprise clients', message: 'Your win rate is 15% higher for deals over EUR 10,000. Consider targeting larger accounts.' },
-    { type: 'info', title: 'Automation ROI: 12 hours saved this month', message: 'Invoice reminders, meeting prep, and email classification saved the most time.' },
+    { type: 'positive', icon: 'TrendingUp', color: 'green', title: 'Revenue up 18.3% this month', message: 'EUR 27.6K collected vs EUR 23.3K last month. TechVision\'s EUR 8,500 contract was the largest single deal.', link: '/invoices' },
+    { type: 'warning', icon: 'AlertTriangle', color: 'red', title: '2 invoices overdue (EUR 8,500)', message: 'CloudFirst AG (EUR 5,200, 14 days late) and MediaWave GmbH (EUR 3,300, 7 days late). Consider escalating.', link: '/invoices' },
+    { type: 'warning', icon: 'AlertTriangle', color: 'amber', title: '3 stale leads need attention', message: "GreenEnergy Startup, FoodTech Berlin, and BioPharm Research haven't been contacted in 10+ days.", link: '/clients' },
+    { type: 'positive', icon: 'CheckCircle2', color: 'green', title: 'Win rate improved to 80%', message: '4 deals won vs 1 lost. Up from 65% last quarter. Follow-up automation is converting more leads.', link: '/clients' },
+    { type: 'info', icon: 'Mail', color: 'blue', title: 'Email response time: 2.1 hours avg', message: 'Down from 3.4 hours last month. AI draft replies helping you respond 38% faster.', link: '/inbox' },
+    { type: 'info', icon: 'Target', color: 'purple', title: 'Top performer: BioPharm Research', message: 'EUR 70,000 deal value in Lead stage. High-value pharmaceutical client — prioritize outreach.', link: '/clients' },
+    { type: 'info', icon: 'Lightbulb', color: 'blue', title: 'Enable invoice auto-reminders', message: '3 of 5 overdue invoices this quarter could have been caught earlier with automated day-3 reminders.', link: '/automations' },
+    { type: 'info', icon: 'BarChart3', color: 'slate', title: 'Task completion rate: 5%', message: 'Only 1 of 20 tasks completed. 10 overdue. Review task priorities and delegate where possible.', link: '/tasks' },
   ],
 }
 
@@ -183,22 +189,37 @@ function SectionHeader({ icon: Icon, title }) {
   )
 }
 
-function InsightCard({ insight }) {
-  const config = {
-    positive: { icon: TrendingUp, bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-200 dark:border-emerald-800', text: 'text-emerald-700 dark:text-emerald-400' },
-    warning: { icon: AlertTriangle, bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-200 dark:border-amber-800', text: 'text-amber-700 dark:text-amber-400' },
-    info: { icon: Info, bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-200 dark:border-blue-800', text: 'text-blue-700 dark:text-blue-400' },
-  }[insight.type] || { icon: Info, bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-600' }
+const INSIGHT_ICONS = { TrendingUp, AlertTriangle, CheckCircle2, Mail, Target, Lightbulb, BarChart3, Info }
+const INSIGHT_COLORS = {
+  green: { iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', iconText: 'text-emerald-600 dark:text-emerald-400' },
+  red: { iconBg: 'bg-red-100 dark:bg-red-900/30', iconText: 'text-red-600 dark:text-red-400' },
+  amber: { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400' },
+  blue: { iconBg: 'bg-blue-100 dark:bg-blue-900/30', iconText: 'text-blue-600 dark:text-blue-400' },
+  purple: { iconBg: 'bg-purple-100 dark:bg-purple-900/30', iconText: 'text-purple-600 dark:text-purple-400' },
+  slate: { iconBg: 'bg-slate-100 dark:bg-slate-700', iconText: 'text-slate-600 dark:text-slate-400' },
+}
 
-  const Icon = config.icon
+function InsightCard({ insight, onAction }) {
+  const Icon = INSIGHT_ICONS[insight.icon] || Info
+  const colors = INSIGHT_COLORS[insight.color] || INSIGHT_COLORS.blue
 
   return (
-    <div className={`rounded-lg border p-4 ${config.bg} ${config.border}`}>
-      <div className="flex items-start gap-3">
-        <Icon className={`h-5 w-5 mt-0.5 flex-shrink-0 ${config.text}`} />
-        <div>
-          <h4 className={`text-sm font-semibold ${config.text}`}>{insight.title}</h4>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">{insight.message}</p>
+    <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
+      <div className="flex items-start gap-4">
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${colors.iconBg}`}>
+          <Icon className={`h-5 w-5 ${colors.iconText}`} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="text-sm font-bold text-slate-900 dark:text-white">{insight.title}</h4>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{insight.message}</p>
+          {insight.link && (
+            <button
+              onClick={() => onAction?.(insight.link)}
+              className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+            >
+              Take Action <ArrowRight className="h-3 w-3" />
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -224,6 +245,7 @@ function CustomTooltip({ active, payload, label, prefix = '' }) {
 // ---------------------------------------------------------------------------
 
 export default function Analytics() {
+  const navigate = useNavigate()
   const [tab, setTab] = useState('revenue')
 
   const { data: revenue } = useQuery({
@@ -290,7 +312,9 @@ export default function Analytics() {
             <StatCard icon={DollarSign} label="Total Collected" value={`EUR ${(revenue.total_collected / 1000).toFixed(1)}K`} color="text-emerald-600" />
             <StatCard icon={DollarSign} label="This Month" value={`EUR ${(revenue.this_month / 1000).toFixed(1)}K`} trend={revenue.growth_pct} trendLabel="vs last month" color="text-brand-600" />
             <StatCard icon={DollarSign} label="Outstanding" value={`EUR ${(revenue.total_outstanding / 1000).toFixed(1)}K`} color="text-yellow-600" />
-            <StatCard icon={AlertTriangle} label="Overdue" value={`EUR ${(revenue.total_overdue / 1000).toFixed(1)}K`} color="text-red-600" />
+            <div className="cursor-pointer" onClick={() => navigate('/invoices')}>
+              <StatCard icon={AlertTriangle} label="Overdue" value={`EUR ${(revenue.total_overdue / 1000).toFixed(1)}K`} color="text-red-600" />
+            </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
@@ -366,7 +390,7 @@ export default function Analytics() {
                 const maxCount = Math.max(...arr.map(s => s.count), 1)
                 const pct = Math.max(30, (stage.count / maxCount) * 100)
                 return (
-                  <div key={stage.stage} className="text-center">
+                  <div key={stage.stage} className="text-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/clients')}>
                     <div className="flex items-end justify-center h-20">
                       <div
                         className="rounded-lg w-full max-w-[4rem] transition-all"
@@ -392,7 +416,7 @@ export default function Analytics() {
               <SectionHeader icon={TrendingUp} title="Top Clients by Deal Value" />
               <div className="space-y-3">
                 {clients.top_clients.map((c, i) => (
-                  <div key={i} className="flex items-center justify-between">
+                  <div key={i} className="flex items-center justify-between cursor-pointer rounded-lg px-2 py-1 -mx-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" onClick={() => navigate('/clients')}>
                     <div className="flex items-center gap-3">
                       <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-600 dark:bg-brand-900 dark:text-brand-400">
                         {i + 1}
@@ -536,16 +560,18 @@ export default function Analytics() {
       {/* AI Insights Tab */}
       {tab === 'insights' && (
         <div className="space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-            <SectionHeader icon={Sparkles} title="AI Business Insights" />
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-              Intelligent analysis of your business data with actionable recommendations.
-            </p>
-            <div className="space-y-3">
-              {(insightsData?.insights || []).map((insight, i) => (
-                <InsightCard key={i} insight={insight} />
-              ))}
-            </div>
+          <SectionHeader icon={Sparkles} title="AI Business Insights" />
+          <p className="-mt-4 text-sm text-slate-500 dark:text-slate-400">
+            Intelligent analysis of your business data with actionable recommendations.
+          </p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {(() => {
+              const apiInsights = insightsData?.insights || []
+              const merged = apiInsights.length >= 6 ? apiInsights : DEMO_INSIGHTS.insights
+              return merged.map((insight, i) => (
+                <InsightCard key={i} insight={insight} onAction={(path) => navigate(path)} />
+              ))
+            })()}
           </div>
         </div>
       )}

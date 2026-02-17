@@ -6,11 +6,11 @@ import { useTheme } from '../../context/ThemeContext'
 import { getInitials } from '../../utils/helpers'
 
 const DEMO_ALERTS = [
-  { id: '1', title: 'Invoice overdue: CloudFirst AG', severity: 'warning', time: '5 min ago', read: false },
-  { id: '2', title: 'New email from Sarah Mitchell (urgent)', severity: 'critical', time: '12 min ago', read: false },
-  { id: '3', title: 'Meeting in 30 min: Client Call with Hans', severity: 'info', time: '28 min ago', read: false },
-  { id: '4', title: 'Automation completed: Weekly Report', severity: 'success', time: '1 hour ago', read: true },
-  { id: '5', title: 'New client added: DataSync Corp.', severity: 'info', time: '2 hours ago', read: true },
+  { id: '1', title: 'Invoice overdue: CloudFirst AG', severity: 'warning', time: '5 min ago', read: false, route: '/invoices' },
+  { id: '2', title: 'New email from Sarah Mitchell (urgent)', severity: 'critical', time: '12 min ago', read: false, route: '/inbox' },
+  { id: '3', title: 'Meeting in 30 min: Client Call with Hans', severity: 'info', time: '28 min ago', read: false, route: '/calendar' },
+  { id: '4', title: 'Automation completed: Weekly Report', severity: 'success', time: '1 hour ago', read: true, route: '/reports' },
+  { id: '5', title: 'New client added: DataSync Corp.', severity: 'info', time: '2 hours ago', read: true, route: '/clients' },
 ]
 
 const SEVERITY_CONFIG = {
@@ -113,7 +113,13 @@ export default function Header({ onMenuToggle }) {
                   return (
                     <button
                       key={alert.id}
-                      onClick={() => markRead(alert.id)}
+                      onClick={() => {
+                        markRead(alert.id)
+                        if (alert.route) {
+                          navigate(alert.route)
+                          setShowNotifications(false)
+                        }
+                      }}
                       className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 ${
                         !alert.read ? 'bg-brand-50/50 dark:bg-brand-900/10' : ''
                       }`}

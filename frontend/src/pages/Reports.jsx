@@ -35,34 +35,34 @@ import { formatDate } from '../utils/formatters'
 const DEMO_BRIEFING = {
   id: 'br-1',
   type: 'daily',
-  title: 'Morning Briefing — February 15, 2026',
+  title: 'Morning Briefing — February 17, 2026',
   content: {
-    summary: "Good morning, Darko. You have 5 urgent emails, 3 meetings today, and €11,700 in overdue invoices. Here's what to focus on today.",
+    summary: "📧 12 new emails — 3 urgent (Frank Hartmann, Hans Weber, Dr. Vogel), 2 client inquiries, 4 invoice-related, 3 newsletters. 3 emails need replies.\n\n📅 2 meetings today — 10:00 AM Team Standup, 3:00 PM Client Call with Hans Weber (TechVision). Prep brief ready for Hans call.\n\n💰 EUR 34,000 outstanding across 6 invoices. EUR 8,500 overdue (2 invoices). 3 payments expected this week totaling EUR 12,300.\n\n👥 Pipeline: 1 new lead added (TouchMedia GmbH). SecureNet Cyber moved to Negotiation stage. 3 leads stale (7+ days no contact).",
     priorities: [
-      'Review and respond to TechVision partnership proposal (deadline Friday)',
-      'Prepare for quarterly board meeting at 2:00 PM',
-      'Follow up on overdue invoice with CloudFirst AG (€8,500)',
+      'Reply to Frank Hartmann\'s urgent IoT dashboard email',
+      'Prepare for Hans Weber client call at 3 PM — review open invoice EUR 3,200',
+      'Follow up on CloudFirst AG overdue invoice (EUR 5,200, 14 days late)',
     ],
     metrics: {
       emails_unread: 12,
-      emails_urgent: 5,
-      meetings_today: 3,
-      tasks_due: 4,
+      emails_urgent: 3,
+      meetings_today: 2,
+      tasks_due: 5,
       invoices_overdue: 2,
-      overdue_amount: 11700,
+      overdue_amount: 8500,
     },
   },
   created_at: new Date().toISOString(),
 }
 
 const DEMO_REPORTS = [
-  { id: 'r1', type: 'daily', title: 'Daily Briefing — Feb 15', created_at: '2026-02-15T08:00:00Z', content: { summary: '5 urgent emails, 3 meetings, €11,700 overdue.' } },
-  { id: 'r2', type: 'daily', title: 'Daily Briefing — Feb 14', created_at: '2026-02-14T08:00:00Z', content: { summary: '3 urgent emails, 4 meetings, all invoices current.' } },
-  { id: 'r3', type: 'weekly', title: 'Weekly Report — Feb 9-15', created_at: '2026-02-15T08:00:00Z', content: { summary: 'Strong week: 42 emails handled, 8 meetings, €22,000 collected, 2 new leads.' } },
-  { id: 'r4', type: 'weekly', title: 'Weekly Report — Feb 2-8', created_at: '2026-02-08T08:00:00Z', content: { summary: '35 emails handled, 6 meetings, €18,500 collected, 1 client won.' } },
-  { id: 'r5', type: 'monthly', title: 'Monthly Report — January 2026', created_at: '2026-02-01T08:00:00Z', content: { summary: 'Revenue up 12%. 3 new clients acquired. 180 emails classified. 4 automations saved ~15 hours.' } },
-  { id: 'r6', type: 'daily', title: 'Daily Briefing — Feb 13', created_at: '2026-02-13T08:00:00Z', content: { summary: '2 urgent emails, 2 meetings. Quiet day.' } },
-  { id: 'r7', type: 'monthly', title: 'Monthly Report — December 2025', created_at: '2026-01-01T08:00:00Z', content: { summary: 'Revenue steady. 2 clients in negotiation. Holiday season reduced activity 20%.' } },
+  { id: 'r1', type: 'daily', title: 'Morning Briefing — Feb 17', created_at: '2026-02-17T08:00:00Z', content: { summary: '3 urgent emails from Frank Hartmann, Hans Weber, Dr. Vogel. 2 meetings today. EUR 8,500 overdue. Top priority: Reply to Frank Hartmann.' } },
+  { id: 'r2', type: 'daily', title: 'Morning Briefing — Feb 14', created_at: '2026-02-14T08:00:00Z', content: { summary: 'Quiet Friday. 1 urgent email (Sarah Mitchell, decision needed). 1 meeting at 2 PM. All invoices current. TechVision proposal deadline today.' } },
+  { id: 'r3', type: 'daily', title: 'Morning Briefing — Feb 13', created_at: '2026-02-13T08:00:00Z', content: { summary: '2 client inquiries from NovaTech and SecureNet. No meetings. EUR 5,200 payment received from DataSync. Pipeline healthy.' } },
+  { id: 'r4', type: 'weekly', title: 'Weekly Summary — Feb 10-16', created_at: '2026-02-16T08:00:00Z', content: { summary: 'Strong week: 42 emails handled, 8 meetings, EUR 22,000 collected, 2 new leads added. Win rate at 80%. 3 stale leads flagged for follow-up.' } },
+  { id: 'r5', type: 'weekly', title: 'Weekly Summary — Feb 3-9', created_at: '2026-02-09T08:00:00Z', content: { summary: '35 emails handled, 6 meetings, EUR 18,500 collected. FinTech Solutions deal closed (EUR 22K). 1 lead lost (LogiTrans).' } },
+  { id: 'r6', type: 'monthly', title: 'Monthly Report — January 2026', created_at: '2026-02-01T08:00:00Z', content: { summary: 'Revenue: EUR 33,800 (+12% MoM). 3 new clients acquired. 180 emails classified by AI. 4 automations saved ~15 hours. Pipeline value grew 18%.' } },
+  { id: 'r7', type: 'monthly', title: 'Monthly Report — December 2025', created_at: '2026-01-01T08:00:00Z', content: { summary: 'Revenue: EUR 29,400. Holiday season reduced activity 20%. 2 clients in negotiation (CloudFirst, BioPharm). 5 automations deployed.' } },
 ]
 
 const DEMO_METRICS = {
@@ -154,9 +154,9 @@ export default function Reports() {
             <Sparkles className="h-5 w-5 text-brand-600 dark:text-brand-400" />
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">{briefing.title}</h2>
           </div>
-          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+          <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
             {briefing.content?.summary}
-          </p>
+          </div>
 
           {briefing.content?.priorities?.length > 0 && (
             <div className="mt-4">

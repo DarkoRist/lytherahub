@@ -33,6 +33,26 @@ function getCategoryStyle(category) {
   return CATEGORY_STYLES[category] || CATEGORY_STYLES.other
 }
 
+const AVATAR_COLORS = [
+  'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+  'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
+  'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300',
+  'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+  'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
+  'bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300',
+  'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300',
+]
+
+function getAvatarColor(name) {
+  if (!name) return AVATAR_COLORS[0]
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
+}
+
 export default function EmailCard({ email, selected, onSelect }) {
   const style = getCategoryStyle(email.category)
   const isUnread = !email.is_read
@@ -54,7 +74,7 @@ export default function EmailCard({ email, selected, onSelect }) {
         <div
           className={classNames(
             'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
-            style.avatar
+            getAvatarColor(email.sender_name || email.from)
           )}
         >
           {getInitials(email.sender_name || email.from || '??')}

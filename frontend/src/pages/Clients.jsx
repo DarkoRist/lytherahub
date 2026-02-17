@@ -20,6 +20,7 @@ import {
   Clock,
   FileText,
   GripVertical,
+  Upload,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../api/client'
@@ -396,6 +397,16 @@ function ClientTable({ clients, loading, onClientClick }) {
 
 function ClientDetailPanel({ client, onClose, onEnrich, enriching }) {
   const c = client
+  const [newNote, setNewNote] = useState('')
+  const [notes, setNotes] = useState([
+    { id: 1, text: 'Discussed Q1 roadmap and pricing adjustments.', date: '2026-02-10' },
+  ])
+
+  const demoDocuments = [
+    { name: 'Proposal_v2.pdf', date: '2026-02-12', size: '245 KB' },
+    { name: 'Contract_Draft.docx', date: '2026-01-28', size: '128 KB' },
+    { name: 'Meeting_Notes_Jan.pdf', date: '2026-01-15', size: '89 KB' },
+  ]
 
   const activities = [
     { type: 'email', desc: `Email sent to ${c.contact_name}`, time: '2 days ago' },
@@ -488,6 +499,66 @@ function ClientDetailPanel({ client, onClose, onEnrich, enriching }) {
                   </div>
                 )
               })}
+            </div>
+          </div>
+
+          {/* Documents & Notes */}
+          <div>
+            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Documents & Notes</h4>
+
+            {/* Add Note */}
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                placeholder="Add a note..."
+                className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+              />
+              <button
+                onClick={() => {
+                  if (newNote.trim()) {
+                    setNotes((prev) => [{ id: Date.now(), text: newNote.trim(), date: new Date().toISOString().split('T')[0] }, ...prev])
+                    setNewNote('')
+                    toast.success('Note saved')
+                  }
+                }}
+                className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
+              >
+                Save
+              </button>
+            </div>
+
+            {/* Notes list */}
+            {notes.length > 0 && (
+              <div className="space-y-2 mb-4">
+                {notes.map((note) => (
+                  <div key={note.id} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/50">
+                    <p className="text-sm text-slate-700 dark:text-slate-300">{note.text}</p>
+                    <p className="text-xs text-slate-400 mt-1">{note.date}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Upload Document */}
+            <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 py-3 text-sm font-medium text-slate-500 hover:border-brand-400 hover:text-brand-600 dark:border-slate-600 dark:hover:border-brand-500 dark:hover:text-brand-400 mb-3">
+              <Upload className="h-4 w-4" />
+              Upload Document
+              <input type="file" className="hidden" onChange={() => toast.success('Document uploaded')} />
+            </label>
+
+            {/* Demo documents */}
+            <div className="space-y-2">
+              {demoDocuments.map((doc, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 dark:border-slate-700 dark:bg-slate-800">
+                  <FileText className="h-4 w-4 shrink-0 text-slate-400" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{doc.name}</p>
+                    <p className="text-xs text-slate-400">{doc.date} · {doc.size}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

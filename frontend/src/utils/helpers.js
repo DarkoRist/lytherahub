@@ -3,12 +3,11 @@ export function classNames(...classes) {
 }
 
 export function getInitials(name) {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
+  if (!name || typeof name !== 'string') return '?'
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  const initials = parts.map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+  return initials || '?'
 }
 
 export function truncate(str, length = 100) {

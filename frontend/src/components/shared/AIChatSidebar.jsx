@@ -233,7 +233,9 @@ export default function AIChatSidebar() {
   const sendMessage = async (text) => {
     if (!text.trim() || loading) return
     const userMsg = { role: 'user', content: text.trim() }
-    setMessages((prev) => [...prev, userMsg])
+    // Capture current messages synchronously so getChatDemoReply gets reliable history
+    const currentMessages = [...messages, userMsg]
+    setMessages(currentMessages)
     setInput('')
     setLoading(true)
 
@@ -246,10 +248,8 @@ export default function AIChatSidebar() {
       setSessionId(data.session_id)
       setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }])
     } catch {
-      setMessages((prev) => {
-        const reply = getChatDemoReply(text.trim(), prev)
-        return [...prev, { role: 'assistant', content: reply }]
-      })
+      const reply = getChatDemoReply(text.trim(), currentMessages)
+      setMessages((prev) => [...prev, { role: 'assistant', content: reply }])
     } finally {
       setLoading(false)
     }

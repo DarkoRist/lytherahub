@@ -96,13 +96,26 @@ export default function Reports() {
 
   const { data: briefing } = useQuery({
     queryKey: ['reports-briefing'],
-    queryFn: () => api.get('/reports/briefing').then((r) => r.data),
+    queryFn: async () => {
+      try {
+        return (await api.get('/reports/briefing')).data
+      } catch {
+        return DEMO_BRIEFING
+      }
+    },
     placeholderData: DEMO_BRIEFING,
   })
 
   const { data: reports } = useQuery({
     queryKey: ['reports'],
-    queryFn: () => api.get('/reports').then((r) => r.data?.items || r.data),
+    queryFn: async () => {
+      try {
+        const res = await api.get('/reports')
+        return res.data?.items || res.data
+      } catch {
+        return DEMO_REPORTS
+      }
+    },
     placeholderData: DEMO_REPORTS,
   })
 

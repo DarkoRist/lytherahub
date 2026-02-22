@@ -1,17 +1,15 @@
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import {
   BarChart3,
   Calendar,
+  ChevronDown,
   Clock,
   FileText,
   Loader2,
   Mail,
-  RefreshCw,
   Sparkles,
   TrendingUp,
-  Users,
-  Zap,
 } from 'lucide-react'
 import {
   BarChart,
@@ -56,14 +54,20 @@ const DEMO_BRIEFING = {
 }
 
 const DEMO_REPORTS = [
-  { id: 'r1', type: 'daily', title: 'Morning Briefing — Feb 17', created_at: '2026-02-17T08:00:00Z', content: { summary: '3 urgent emails from Frank Hartmann, Hans Weber, Dr. Vogel. 2 meetings today. EUR 8,500 overdue. Top priority: Reply to Frank Hartmann.' } },
+  { id: 'r1', type: 'daily', title: 'Morning Briefing — Feb 17', created_at: '2026-02-17T08:00:00Z', content: { summary: '📧 Emails: 12 received, 8 read, 3 urgent replied. 📅 Meetings: 2 held (Standup, TechVision call). 💰 Revenue: €4,200 collected, 1 new invoice sent. ✅ Tasks: 3 completed, 2 created by AI. 🎯 Wins: SecureNet moved to Negotiation, new lead TouchMedia added.' } },
   { id: 'r2', type: 'daily', title: 'Morning Briefing — Feb 14', created_at: '2026-02-14T08:00:00Z', content: { summary: 'Quiet Friday. 1 urgent email (Sarah Mitchell, decision needed). 1 meeting at 2 PM. All invoices current. TechVision proposal deadline today.' } },
   { id: 'r3', type: 'daily', title: 'Morning Briefing — Feb 13', created_at: '2026-02-13T08:00:00Z', content: { summary: '2 client inquiries from NovaTech and SecureNet. No meetings. EUR 5,200 payment received from DataSync. Pipeline healthy.' } },
-  { id: 'r4', type: 'weekly', title: 'Weekly Summary — Feb 10-16', created_at: '2026-02-16T08:00:00Z', content: { summary: 'Strong week: 42 emails handled, 8 meetings, EUR 22,000 collected, 2 new leads added. Win rate at 80%. 3 stale leads flagged for follow-up.' } },
-  { id: 'r5', type: 'weekly', title: 'Weekly Summary — Feb 3-9', created_at: '2026-02-09T08:00:00Z', content: { summary: '35 emails handled, 6 meetings, EUR 18,500 collected. FinTech Solutions deal closed (EUR 22K). 1 lead lost (LogiTrans).' } },
-  { id: 'r6', type: 'monthly', title: 'Monthly Report — January 2026', created_at: '2026-02-01T08:00:00Z', content: { summary: 'Revenue: EUR 33,800 (+12% MoM). 3 new clients acquired. 180 emails classified by AI. 4 automations saved ~15 hours. Pipeline value grew 18%.' } },
+  { id: 'r4', type: 'weekly', title: 'Weekly Summary — Feb 10–16', created_at: '2026-02-16T08:00:00Z', content: { summary: '📧 Emails: 42 handled, 6 urgent replied, 12 newsletters archived. 📅 Meetings: 8 total, 3 client calls, 2 strategy sessions. 💰 Revenue: EUR 22,000 collected, 3 invoices sent. ✅ Tasks: 18 completed, 4 created by AI. 👥 Pipeline: 2 new leads added, 1 deal closed (FinTech Solutions). Win rate: 80%.' } },
+  { id: 'r5', type: 'weekly', title: 'Weekly Summary — Feb 3–9', created_at: '2026-02-09T08:00:00Z', content: { summary: '35 emails handled, 6 meetings, EUR 18,500 collected. FinTech Solutions deal closed (EUR 22K). 1 lead lost (LogiTrans).' } },
+  { id: 'r6', type: 'monthly', title: 'Monthly Report — January 2026', created_at: '2026-02-01T08:00:00Z', content: { summary: '📧 Emails: 180 classified by AI, 45 urgent handled, 12 replied automatically. 💰 Revenue: EUR 33,800 (+12% MoM), 3 new clients acquired. 🤖 Automations: 4 workflows saved ~15 hours of manual work. 📈 Pipeline value grew 18%. Net margin improved to 32%. Top performer: FinTech Solutions account (EUR 62K ARR).' } },
   { id: 'r7', type: 'monthly', title: 'Monthly Report — December 2025', created_at: '2026-01-01T08:00:00Z', content: { summary: 'Revenue: EUR 29,400. Holiday season reduced activity 20%. 2 clients in negotiation (CloudFirst, BioPharm). 5 automations deployed.' } },
 ]
+
+const EXPANDED_CONTENT = {
+  daily: '📧 Emails: 12 received, 8 read, 3 urgent replied. 📅 Meetings: 2 held (Standup, TechVision call). 💰 Revenue: €4,200 collected, 1 new invoice sent. ✅ Tasks: 3 completed, 2 created by AI. 🎯 Wins: SecureNet moved to Negotiation, new lead TouchMedia added.',
+  weekly: '📧 Emails: 42 handled, 6 urgent replied, 12 newsletters archived. 📅 Meetings: 8 total, 3 client calls, 2 strategy sessions. 💰 Revenue: EUR 22,000 collected, 3 invoices sent. ✅ Tasks: 18 completed, 4 created by AI. 👥 Pipeline: 2 new leads added, 1 deal closed (FinTech Solutions). Win rate: 80%.',
+  monthly: '📧 Emails: 180 classified by AI, 45 urgent handled, 12 replied automatically. 💰 Revenue: EUR 33,800 (+12% MoM), 3 new clients acquired. 🤖 Automations: 4 workflows saved ~15 hours of manual work. 📈 Pipeline value grew 18%. Net margin improved to 32%. Top performer: FinTech Solutions account (EUR 62K ARR).',
+}
 
 const DEMO_METRICS = {
   emails: [
@@ -86,13 +90,33 @@ const DEMO_METRICS = {
 }
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function getTitleForType(type) {
+  const now = new Date()
+  if (type === 'daily') {
+    return `Morning Briefing — ${now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+  }
+  if (type === 'weekly') {
+    const weekStart = new Date(now)
+    weekStart.setDate(now.getDate() - now.getDay() + 1)
+    const weekEnd = new Date(weekStart)
+    weekEnd.setDate(weekStart.getDate() + 6)
+    return `Weekly Summary — ${weekStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}–${weekEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+  }
+  return `Monthly Report — ${now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`
+}
+
+// ---------------------------------------------------------------------------
 // Reports Page
 // ---------------------------------------------------------------------------
 
 export default function Reports() {
-  const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState('daily')
-  const [expandedReport, setExpandedReport] = useState(null)
+  const [expandedId, setExpandedId] = useState(null)
+  const [reports, setReports] = useState(DEMO_REPORTS)
+  const [generating, setGenerating] = useState(false)
 
   const { data: briefing } = useQuery({
     queryKey: ['reports-briefing'],
@@ -106,29 +130,37 @@ export default function Reports() {
     placeholderData: DEMO_BRIEFING,
   })
 
-  const { data: reports } = useQuery({
-    queryKey: ['reports'],
-    queryFn: async () => {
-      try {
-        const res = await api.get('/reports')
-        return res.data?.items || res.data
-      } catch {
-        return DEMO_REPORTS
+  const handleGenerate = async () => {
+    setGenerating(true)
+    try {
+      const res = await api.post(`/reports/generate/${activeTab}`)
+      const newReport = {
+        id: `r-${Date.now()}`,
+        type: activeTab,
+        title: res.data?.title || getTitleForType(activeTab),
+        created_at: new Date().toISOString(),
+        content: res.data?.content || { summary: EXPANDED_CONTENT[activeTab] },
       }
-    },
-    placeholderData: DEMO_REPORTS,
-  })
-
-  const generateReport = useMutation({
-    mutationFn: (type) => api.post(`/reports/generate/${type}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reports'] })
+      setReports((prev) => [newReport, ...prev])
       toast.success('Report generated')
-    },
-    onError: () => toast.error('Failed to generate report'),
-  })
+    } catch {
+      // Demo mode: simulate generation delay then add locally
+      await new Promise((r) => setTimeout(r, 1500))
+      const newReport = {
+        id: `r-${Date.now()}`,
+        type: activeTab,
+        title: getTitleForType(activeTab),
+        created_at: new Date().toISOString(),
+        content: { summary: EXPANDED_CONTENT[activeTab] },
+      }
+      setReports((prev) => [newReport, ...prev])
+      toast.success('Report generated')
+    } finally {
+      setGenerating(false)
+    }
+  }
 
-  const filteredReports = reports?.filter((r) => r.type === activeTab) || []
+  const filteredReports = reports.filter((r) => r.type === activeTab)
 
   const tabs = [
     { key: 'daily', label: 'Daily Briefing', icon: Clock },
@@ -147,11 +179,11 @@ export default function Reports() {
           </p>
         </div>
         <button
-          onClick={() => generateReport.mutate(activeTab)}
-          disabled={generateReport.isPending}
+          onClick={handleGenerate}
+          disabled={generating}
           className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
         >
-          {generateReport.isPending ? (
+          {generating ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <Sparkles className="h-4 w-4" />
@@ -262,8 +294,8 @@ export default function Reports() {
               <FileText className="h-10 w-10 text-slate-300 dark:text-slate-600" />
               <p className="mt-2 text-sm font-medium text-slate-500">No {activeTab} reports yet</p>
               <button
-                onClick={() => generateReport.mutate(activeTab)}
-                disabled={generateReport.isPending}
+                onClick={handleGenerate}
+                disabled={generating}
                 className="mt-3 flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
               >
                 <Sparkles className="h-3.5 w-3.5" />
@@ -274,18 +306,30 @@ export default function Reports() {
             filteredReports.map((report) => (
               <div
                 key={report.id}
-                className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800"
+                className="rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 overflow-hidden"
               >
-                <div className="flex items-center justify-between">
+                <button
+                  className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                  onClick={() => setExpandedId(expandedId === report.id ? null : report.id)}
+                >
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-slate-400" />
                     <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{report.title}</h4>
                   </div>
-                  <span className="text-xs text-slate-400">{formatDate(report.created_at)}</span>
-                </div>
-                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                  {report.content?.summary}
-                </p>
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                    <span className="text-xs text-slate-400">{formatDate(report.created_at)}</span>
+                    <ChevronDown
+                      className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                        expandedId === report.id ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </div>
+                </button>
+                {expandedId === report.id && (
+                  <div className="px-4 pb-4 text-sm text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-700 pt-3 leading-relaxed">
+                    {report.content?.summary}
+                  </div>
+                )}
               </div>
             ))
           )}

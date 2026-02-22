@@ -17,13 +17,13 @@ function buildDemoReply(tone, email) {
   const subject = email?.subject || 'your message'
 
   if (tone === 'professional') {
-    return `Dear ${email?.sender_name || firstName},\n\nThank you for your email regarding "${subject}". I have reviewed the details you shared and would like to confirm that we are aligned on the next steps.\n\nI will have the requested information prepared and sent over by end of business tomorrow. Please do not hesitate to reach out if you need anything further in the meantime.\n\nBest regards,\n[Your Name]`
+    return `Dear ${email?.sender_name || firstName},\n\nThank you for your email regarding "${subject}". I have reviewed the details you shared and would like to confirm that we are aligned on the next steps.\n\nI will have the requested information prepared and sent over by end of business tomorrow. Please do not hesitate to reach out if you need anything further in the meantime.\n\nBest regards,\nDarko`
   }
   if (tone === 'friendly') {
-    return `Hi ${firstName}!\n\nThanks so much for reaching out about "${subject}"! I really appreciate you taking the time to share this.\n\nI'll get everything sorted on my end and circle back with you soon. Let me know if there's anything else I can help with!\n\nCheers,\n[Your Name]`
+    return `Hi ${firstName}!\n\nThanks so much for reaching out about "${subject}"! I really appreciate you taking the time to share this.\n\nI'll get everything sorted on my end and circle back with you soon. Let me know if there's anything else I can help with!\n\nCheers,\nDarko`
   }
   // brief
-  return `Hi ${firstName},\n\nNoted, thank you — re: "${subject}". I'll follow up by tomorrow.\n\nBest,\n[Your Name]`
+  return `Hi ${firstName},\n\nNoted, thank you — re: "${subject}". I'll follow up by tomorrow.\n\nBest,\nDarko`
 }
 
 export default function ReplyDraft({ email, onSend }) {

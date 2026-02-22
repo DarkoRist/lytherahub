@@ -401,12 +401,34 @@ function ClientDetailPanel({ client, onClose, onEnrich, enriching }) {
   const [notes, setNotes] = useState([
     { id: 1, text: 'Discussed Q1 roadmap and pricing adjustments.', date: '2026-02-10' },
   ])
+  const [uploadedDocs, setUploadedDocs] = useState([])
+  const [previewDoc, setPreviewDoc] = useState(null)
 
   const demoDocuments = [
     { name: 'Proposal_v2.pdf', date: '2026-02-12', size: '245 KB' },
     { name: 'Contract_Draft.docx', date: '2026-01-28', size: '128 KB' },
     { name: 'Meeting_Notes_Jan.pdf', date: '2026-01-15', size: '89 KB' },
   ]
+
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  function handleFileUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const doc = {
+      name: file.name,
+      date: new Date().toISOString().split('T')[0],
+      size: formatFileSize(file.size),
+    }
+    setUploadedDocs((prev) => [doc, ...prev])
+    toast.success('Document uploaded')
+    // Reset input so same file can be re-uploaded
+    e.target.value = ''
+  }
 
   const activities = [
     { type: 'email', desc: `Email sent to ${c.contact_name}`, time: '2 days ago' },
@@ -545,13 +567,36 @@ function ClientDetailPanel({ client, onClose, onEnrich, enriching }) {
             <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 py-3 text-sm font-medium text-slate-500 hover:border-brand-400 hover:text-brand-600 dark:border-slate-600 dark:hover:border-brand-500 dark:hover:text-brand-400 mb-3">
               <Upload className="h-4 w-4" />
               Upload Document
-              <input type="file" className="hidden" onChange={() => toast.success('Document uploaded')} />
+              <input type="file" className="hidden" onChange={handleFileUpload} />
             </label>
+
+            {/* Uploaded documents (from this session) */}
+            {uploadedDocs.length > 0 && (
+              <div className="space-y-2 mb-2">
+                {uploadedDocs.map((doc, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2.5 dark:border-brand-800 dark:bg-brand-900/20 cursor-pointer hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors"
+                    onClick={() => toast.success(`Document preview available in production`)}
+                  >
+                    <FileText className="h-4 w-4 shrink-0 text-brand-500" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{doc.name}</p>
+                      <p className="text-xs text-slate-400">{doc.date} · {doc.size}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Demo documents */}
             <div className="space-y-2">
               {demoDocuments.map((doc, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 dark:border-slate-700 dark:bg-slate-800">
+                <div
+                  key={i}
+                  className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 dark:border-slate-700 dark:bg-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                  onClick={() => setPreviewDoc(doc)}
+                >
                   <FileText className="h-4 w-4 shrink-0 text-slate-400" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{doc.name}</p>
@@ -560,6 +605,34 @@ function ClientDetailPanel({ client, onClose, onEnrich, enriching }) {
                 </div>
               ))}
             </div>
+
+            {/* Document preview modal */}
+            {previewDoc && (
+              <div
+                className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+                onClick={() => setPreviewDoc(null)}
+              >
+                <div
+                  className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-slate-800"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <FileText className="h-6 w-6 text-brand-500" />
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-white">{previewDoc.name}</h3>
+                  </div>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                    Preview: <strong>{previewDoc.name}</strong> — This document would open in your browser when connected to Google Drive.
+                  </p>
+                  <p className="text-xs text-slate-400">{previewDoc.date} · {previewDoc.size}</p>
+                  <button
+                    onClick={() => setPreviewDoc(null)}
+                    className="mt-4 w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

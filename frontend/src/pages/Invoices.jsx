@@ -149,10 +149,36 @@ export default function Invoices() {
 
   // Create invoice
   const createInvoice = useMutation({
-    mutationFn: (data) => api.post('/invoices', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices'] })
-      queryClient.invalidateQueries({ queryKey: ['invoice-stats'] })
+    mutationFn: async (data) => {
+      try {
+        const res = await api.post('/invoices', data)
+        return { fromApi: true, data: res.data }
+      } catch {
+        return { fromApi: false }
+      }
+    },
+    onSuccess: (result, variables) => {
+      if (result.fromApi) {
+        queryClient.invalidateQueries({ queryKey: ['invoices'] })
+        queryClient.invalidateQueries({ queryKey: ['invoice-stats'] })
+      } else {
+        // Demo mode: add invoice directly to the query cache
+        const newInvoice = {
+          id: String(Date.now()),
+          invoice_number: variables.invoice_number,
+          client_name: variables.client_name,
+          amount: parseFloat(variables.amount),
+          status: 'draft',
+          due_date: variables.due_date,
+          paid_date: null,
+          issued_date: new Date().toISOString().split('T')[0],
+          currency: variables.currency || 'EUR',
+        }
+        queryClient.setQueryData(['invoices', statusFilter], (old) => {
+          const current = Array.isArray(old) ? old : DEMO_INVOICES
+          return [newInvoice, ...current]
+        })
+      }
       setShowAddModal(false)
       toast.success('Invoice created')
     },
@@ -234,7 +260,7 @@ export default function Invoices() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mt-0 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label="Total Outstanding"
           value={formatCurrency(stats?.total_outstanding || 0)}

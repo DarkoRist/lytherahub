@@ -2,6 +2,22 @@ import { Star, MessageCircle } from 'lucide-react'
 import { classNames, getInitials, truncate } from '../../utils/helpers'
 import { formatRelativeTime } from '../../utils/formatters'
 
+// Converts an email address into a human-readable display name.
+// Handles system/noreply addresses by using the domain name instead.
+function extractNameFromAddr(addr) {
+  if (!addr || !addr.includes('@')) return null
+  const local = addr.split('@')[0]
+  if (['noreply', 'no-reply', 'notifications', 'newsletter', 'calendar', 'digest', 'billing'].includes(local.toLowerCase())) {
+    const domain = addr.split('@')[1]?.split('.')[0] || ''
+    return domain.charAt(0).toUpperCase() + domain.slice(1)
+  }
+  // "anna.schmidt" → "Anna Schmidt", "k.richter" → "K Richter"
+  return local
+    .split(/[._-]/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
 const CATEGORY_STYLES = {
   urgent: {
     badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
@@ -57,17 +73,15 @@ export default function EmailCard({ email, selected, onSelect }) {
   const style = getCategoryStyle(email.category)
   const isUnread = !email.is_read
 
-  // Try all possible field names the API might use for the sender's display name
+  // Resolve sender display name from all possible field names (API and demo data)
   const senderDisplay =
     email.sender_name ||
     email.from_name ||
     email.sender ||
-    email.from_addr ||
     (email.from && !email.from.includes('@') ? email.from : null) ||
-    (email.from ? email.from.split('@')[0] : null) ||
+    (email.from_addr && !email.from_addr.includes('@') ? email.from_addr : null) ||
+    extractNameFromAddr(email.from_addr || email.from || '') ||
     ''
-
-  console.log('[EmailCard] id:', email.id, '| sender_name:', email.sender_name, '| from:', email.from, '| resolved:', senderDisplay)
 
   return (
     <button

@@ -95,17 +95,18 @@ const DEMO_METRICS = {
 
 function getTitleForType(type) {
   const now = new Date()
+  const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
   if (type === 'daily') {
-    return `Morning Briefing — ${now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+    return `Morning Briefing — ${now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} (${time})`
   }
   if (type === 'weekly') {
     const weekStart = new Date(now)
     weekStart.setDate(now.getDate() - now.getDay() + 1)
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekStart.getDate() + 6)
-    return `Weekly Summary — ${weekStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}–${weekEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+    return `Weekly Business Report — ${weekStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}–${weekEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} (${time})`
   }
-  return `Monthly Report — ${now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`
+  return `Monthly Report — ${now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })} (${time})`
 }
 
 // ---------------------------------------------------------------------------

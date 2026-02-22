@@ -178,6 +178,9 @@ export default function Invoices() {
           const current = Array.isArray(old) ? old : DEMO_INVOICES
           return [newInvoice, ...current]
         })
+        // Also invalidate so other query key variants refresh
+        queryClient.invalidateQueries({ queryKey: ['invoices'] })
+        queryClient.invalidateQueries({ queryKey: ['invoice-stats'] })
       }
       setShowAddModal(false)
       toast.success('Invoice created')

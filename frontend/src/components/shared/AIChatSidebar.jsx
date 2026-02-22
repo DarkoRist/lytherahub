@@ -109,7 +109,6 @@ function getChatDemoReply(text, messages = []) {
   const affirmatives = ['yes', 'sure', 'ok', 'okay', 'do it', 'go ahead', 'yep', 'yeah', 'please', 'sounds good', 'let\'s do it']
   if (affirmatives.some(a => t === a || t === a + '!' || t === a + '.')) {
     const lastAI = getLastAIMessage(messages)
-    console.log('[AI Chat] affirmative detected. history length:', messages.length, '| last AI msg preview:', lastAI.slice(0, 80))
     // Check context even without "?" — match on keywords from the last AI response
     const ctx = lastAI.toLowerCase()
     if (ctx.includes('draft repl') || ctx.includes('draft replies') || ctx.includes('urgent ones')) {

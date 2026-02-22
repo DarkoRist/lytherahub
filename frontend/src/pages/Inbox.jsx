@@ -503,17 +503,31 @@ export default function Inbox() {
 // ---------------------------------------------------------------------------
 // EmailDetail (internal component)
 // ---------------------------------------------------------------------------
+
+function extractNameFromAddr(addr) {
+  if (!addr || !addr.includes('@')) return null
+  const local = addr.split('@')[0]
+  if (['noreply', 'no-reply', 'notifications', 'newsletter', 'calendar', 'digest', 'billing'].includes(local.toLowerCase())) {
+    const domain = addr.split('@')[1]?.split('.')[0] || ''
+    return domain.charAt(0).toUpperCase() + domain.slice(1)
+  }
+  return local
+    .split(/[._-]/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
 function EmailDetail({ email, onBack, onMarkRead, onStar, onArchive }) {
   const badgeClass = CATEGORY_BADGE[email.category] || CATEGORY_BADGE.other
 
-  // Resolve sender display name from any possible field the API might return
+  // Resolve sender display name from all possible fields (API uses from_addr, demo uses sender_name)
   const senderDisplay =
     email.sender_name ||
     email.from_name ||
     email.sender ||
-    email.from_addr ||
     (email.from && !email.from.includes('@') ? email.from : null) ||
-    (email.from ? email.from.split('@')[0] : null) ||
+    (email.from_addr && !email.from_addr.includes('@') ? email.from_addr : null) ||
+    extractNameFromAddr(email.from_addr || email.from || '') ||
     ''
 
   return (
@@ -579,7 +593,7 @@ function EmailDetail({ email, onBack, onMarkRead, onStar, onArchive }) {
               </h2>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                 <span className="font-medium text-slate-700 dark:text-slate-300">
-                  {email.sender_name}
+                  {senderDisplay}
                 </span>
                 <span>&lt;{email.from}&gt;</span>
                 <span className="hidden sm:inline">to {email.to || 'me'}</span>

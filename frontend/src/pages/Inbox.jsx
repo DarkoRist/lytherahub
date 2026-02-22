@@ -473,6 +473,7 @@ export default function Inbox() {
           >
             {selectedEmail ? (
               <EmailDetail
+                key={selectedEmail.id}
                 email={selectedEmail}
                 onBack={handleBack}
                 onMarkRead={() => markReadMutation.mutate(selectedEmail.id)}
@@ -504,6 +505,16 @@ export default function Inbox() {
 // ---------------------------------------------------------------------------
 function EmailDetail({ email, onBack, onMarkRead, onStar, onArchive }) {
   const badgeClass = CATEGORY_BADGE[email.category] || CATEGORY_BADGE.other
+
+  // Resolve sender display name from any possible field the API might return
+  const senderDisplay =
+    email.sender_name ||
+    email.from_name ||
+    email.sender ||
+    email.from_addr ||
+    (email.from && !email.from.includes('@') ? email.from : null) ||
+    (email.from ? email.from.split('@')[0] : null) ||
+    ''
 
   return (
     <div className="flex h-full flex-col">
@@ -560,7 +571,7 @@ function EmailDetail({ email, onBack, onMarkRead, onStar, onArchive }) {
                   : 'bg-gray-100 text-gray-600'
               )}
             >
-              {getInitials(email.sender_name || email.from || '??')}
+              {getInitials(senderDisplay) || senderDisplay.charAt(0).toUpperCase() || '?'}
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -634,7 +645,7 @@ function EmailDetail({ email, onBack, onMarkRead, onStar, onArchive }) {
 
         {/* AI Reply section */}
         <ReplyDraft
-          emailId={email.id}
+          email={email}
           onSend={() => {}}
         />
       </div>

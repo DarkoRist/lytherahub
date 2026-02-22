@@ -57,6 +57,18 @@ export default function EmailCard({ email, selected, onSelect }) {
   const style = getCategoryStyle(email.category)
   const isUnread = !email.is_read
 
+  // Try all possible field names the API might use for the sender's display name
+  const senderDisplay =
+    email.sender_name ||
+    email.from_name ||
+    email.sender ||
+    email.from_addr ||
+    (email.from && !email.from.includes('@') ? email.from : null) ||
+    (email.from ? email.from.split('@')[0] : null) ||
+    ''
+
+  console.log('[EmailCard] id:', email.id, '| sender_name:', email.sender_name, '| from:', email.from, '| resolved:', senderDisplay)
+
   return (
     <button
       onClick={() => onSelect(email)}
@@ -74,10 +86,10 @@ export default function EmailCard({ email, selected, onSelect }) {
         <div
           className={classNames(
             'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
-            getAvatarColor(email.sender_name || email.from)
+            getAvatarColor(senderDisplay)
           )}
         >
-          {getInitials(email.sender_name || email.from || '??')}
+          {getInitials(senderDisplay) || senderDisplay.charAt(0).toUpperCase() || '?'}
         </div>
 
         {/* Content */}
@@ -92,7 +104,7 @@ export default function EmailCard({ email, selected, onSelect }) {
                   : 'font-medium text-slate-700 dark:text-slate-300'
               )}
             >
-              {email.sender_name || email.from}
+              {senderDisplay || email.from}
             </span>
             <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">
               {formatRelativeTime(email.date || email.received_at)}

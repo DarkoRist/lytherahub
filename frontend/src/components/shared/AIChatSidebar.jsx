@@ -105,32 +105,39 @@ function getChatDemoReply(text, messages = []) {
   const t = text.toLowerCase().trim()
 
   // --- Affirmative follow-ups: "yes", "sure", "ok", "do it", "go ahead" ---
+  // messages includes the current user message; getLastAIMessage skips it to find prior AI reply
   const affirmatives = ['yes', 'sure', 'ok', 'okay', 'do it', 'go ahead', 'yep', 'yeah', 'please', 'sounds good', 'let\'s do it']
   if (affirmatives.some(a => t === a || t === a + '!' || t === a + '.')) {
     const lastAI = getLastAIMessage(messages)
-    if (lastAI.includes('?')) {
-      if (lastAI.toLowerCase().includes('draft repl') || lastAI.toLowerCase().includes('draft replies')) {
-        return "I'll draft replies for all 3 urgent emails. Here's what I've prepared:\n\n" +
-          "**1. Frank Hartmann (SmartHome)** — Acknowledged the IoT dashboard issue and proposed a fix timeline for next Tuesday.\n\n" +
-          "**2. Hans Weber (TechVision)** — Confirmed the Q1 contract review meeting for Thursday at 2 PM.\n\n" +
-          "**3. Dr. Vogel (BioPharm)** — Thanked them for the data visualization project inquiry and requested a brief call.\n\n" +
-          "Want me to send these, or would you like to edit any of them first?"
-      }
-      if (lastAI.toLowerCase().includes('reminder') || lastAI.toLowerCase().includes('send reminder')) {
-        return "Done! I've sent a polite payment reminder to CloudFirst AG for invoice #INV-1002 (EUR 8,500). This is their second reminder — the tone has been slightly firmed up. I'll escalate again in 7 days if unpaid."
-      }
-      if (lastAI.toLowerCase().includes('send') && lastAI.toLowerCase().includes('these')) {
-        return "All 3 emails sent successfully!\n\n- **Frank Hartmann** — Sent at 10:32 AM\n- **Hans Weber** — Sent at 10:32 AM\n- **Dr. Vogel** — Sent at 10:32 AM\n\nI've logged these in your activity feed. Anything else?"
-      }
-      if (lastAI.toLowerCase().includes('schedule') || lastAI.toLowerCase().includes('free slot')) {
-        return "Meeting scheduled! I've booked **1:00 PM - 2:00 PM** today.\n\nI'll send a calendar invite and add a prep brief 30 minutes before. What's the meeting about?"
-      }
-      if (lastAI.toLowerCase().includes('follow-up') || lastAI.toLowerCase().includes('follow up')) {
-        return "Done! I've created follow-up tasks for all 3 stale leads:\n\n1. **GreenEnergy Startup** — Follow up tomorrow at 9 AM\n2. **FoodTech Berlin** — Follow up tomorrow at 10 AM\n3. **BioPharm Research** — Follow up Wednesday at 9 AM\n\nI'll draft personalized emails for each. Want to review them?"
-      }
-      return "Got it! I'm on it. What would you like me to do next?"
+    console.log('[AI Chat] affirmative detected. history length:', messages.length, '| last AI msg preview:', lastAI.slice(0, 80))
+    // Check context even without "?" — match on keywords from the last AI response
+    const ctx = lastAI.toLowerCase()
+    if (ctx.includes('draft repl') || ctx.includes('draft replies') || ctx.includes('urgent ones')) {
+      return "I'll draft replies for all 3 urgent emails. Here's what I've prepared:\n\n" +
+        "**1. Frank Hartmann (SmartHome)** — Acknowledged the IoT dashboard issue and proposed a fix timeline for next Tuesday.\n\n" +
+        "**2. Hans Weber (TechVision)** — Confirmed the Q1 contract review meeting for Thursday at 2 PM.\n\n" +
+        "**3. Dr. Vogel (BioPharm)** — Thanked them for the data visualization project inquiry and requested a brief call.\n\n" +
+        "Want me to send these, or would you like to edit any of them first?"
     }
-    return "Got it! What would you like me to do next?"
+    if (ctx.includes('reminder') || ctx.includes('send reminder') || ctx.includes('overdue account')) {
+      return "Done! I've sent a polite payment reminder to CloudFirst AG for invoice #INV-1002 (EUR 8,500). This is their second reminder — the tone has been slightly firmed up. I'll escalate again in 7 days if unpaid."
+    }
+    if (ctx.includes('send') && ctx.includes('these')) {
+      return "All 3 emails sent successfully!\n\n- **Frank Hartmann** — Sent at 10:32 AM\n- **Hans Weber** — Sent at 10:32 AM\n- **Dr. Vogel** — Sent at 10:32 AM\n\nI've logged these in your activity feed. Anything else?"
+    }
+    if (ctx.includes('schedule') || ctx.includes('free slot')) {
+      return "Meeting scheduled! I've booked **1:00 PM - 2:00 PM** today.\n\nI'll send a calendar invite and add a prep brief 30 minutes before. What's the meeting about?"
+    }
+    if (ctx.includes('follow-up') || ctx.includes('follow up') || ctx.includes('stale lead')) {
+      return "Done! I've created follow-up tasks for all 3 stale leads:\n\n1. **GreenEnergy Startup** — Follow up tomorrow at 9 AM\n2. **FoodTech Berlin** — Follow up tomorrow at 10 AM\n3. **BioPharm Research** — Follow up Wednesday at 9 AM\n\nI'll draft personalized emails for each. Want to review them?"
+    }
+    if (ctx.includes('invoice') || ctx.includes('outstanding') || ctx.includes('overdue')) {
+      return "Done! I've flagged CloudFirst AG and MediaWave GmbH as overdue and queued reminders. I'll notify you when they respond."
+    }
+    if (ctx.length > 0) {
+      return "Got it! I'm on it. Anything else you'd like me to do?"
+    }
+    return "Sure! What would you like me to help with?"
   }
 
   // --- "reply to [name]" pattern ---

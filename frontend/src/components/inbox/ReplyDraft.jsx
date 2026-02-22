@@ -11,16 +11,22 @@ const TONES = [
   { key: 'brief', label: 'Brief' },
 ]
 
-const DEMO_REPLIES = {
-  professional:
-    'Dear [Sender],\n\nThank you for your email. I have reviewed the details you shared and would like to confirm that we are aligned on the next steps.\n\nI will have the requested documents prepared and sent over by end of business tomorrow. Please do not hesitate to reach out if you need anything further in the meantime.\n\nBest regards,\n[Your Name]',
-  friendly:
-    'Hi [Sender]!\n\nThanks so much for reaching out! I really appreciate you taking the time to share this with me.\n\nI will get everything sorted on my end and circle back with you soon. Let me know if there is anything else I can help with!\n\nCheers,\n[Your Name]',
-  brief:
-    'Hi [Sender],\n\nNoted, thank you. I will follow up by tomorrow.\n\nBest,\n[Your Name]',
+// Generate a unique demo reply based on the email's actual subject and sender
+function buildDemoReply(tone, email) {
+  const firstName = email?.sender_name?.split(' ')[0] || email?.from?.split('@')[0] || 'there'
+  const subject = email?.subject || 'your message'
+
+  if (tone === 'professional') {
+    return `Dear ${email?.sender_name || firstName},\n\nThank you for your email regarding "${subject}". I have reviewed the details you shared and would like to confirm that we are aligned on the next steps.\n\nI will have the requested information prepared and sent over by end of business tomorrow. Please do not hesitate to reach out if you need anything further in the meantime.\n\nBest regards,\n[Your Name]`
+  }
+  if (tone === 'friendly') {
+    return `Hi ${firstName}!\n\nThanks so much for reaching out about "${subject}"! I really appreciate you taking the time to share this.\n\nI'll get everything sorted on my end and circle back with you soon. Let me know if there's anything else I can help with!\n\nCheers,\n[Your Name]`
+  }
+  // brief
+  return `Hi ${firstName},\n\nNoted, thank you — re: "${subject}". I'll follow up by tomorrow.\n\nBest,\n[Your Name]`
 }
 
-export default function ReplyDraft({ emailId, onSend }) {
+export default function ReplyDraft({ email, onSend }) {
   const [tone, setTone] = useState('professional')
   const [replyBody, setReplyBody] = useState('')
   const [hasGenerated, setHasGenerated] = useState(false)
@@ -28,19 +34,19 @@ export default function ReplyDraft({ emailId, onSend }) {
   const generateMutation = useMutation({
     mutationFn: async () => {
       try {
-        const res = await api.post(`/emails/${emailId}/draft-reply`, { tone })
+        const res = await api.post(`/emails/${email?.id}/draft-reply`, { tone })
         return res.data
       } catch {
-        return { body: DEMO_REPLIES[tone] }
+        return { body: buildDemoReply(tone, email) }
       }
     },
     onSuccess: (data) => {
-      setReplyBody(data.body || data.reply || DEMO_REPLIES[tone])
+      setReplyBody(data.body || data.reply || buildDemoReply(tone, email))
       setHasGenerated(true)
       toast.success('AI reply generated')
     },
     onError: () => {
-      setReplyBody(DEMO_REPLIES[tone])
+      setReplyBody(buildDemoReply(tone, email))
       setHasGenerated(true)
       toast.success('AI reply generated (demo)')
     },
@@ -48,7 +54,7 @@ export default function ReplyDraft({ emailId, onSend }) {
 
   const sendMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post(`/emails/${emailId}/send-reply`, { body: replyBody })
+      const res = await api.post(`/emails/${email?.id}/send-reply`, { body: replyBody })
       return res.data
     },
     onSuccess: () => {
@@ -101,30 +107,33 @@ export default function ReplyDraft({ emailId, onSend }) {
           </div>
         </div>
 
-        {/* Generate button */}
-        {!hasGenerated && (
-          <button
-            onClick={() => generateMutation.mutate()}
-            disabled={generateMutation.isPending}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-60"
-          >
-            {generateMutation.isPending ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4" />
-                Generate Reply
-              </>
-            )}
-          </button>
-        )}
+        {/* Generate / Regenerate button — always visible, label changes after first generation */}
+        <button
+          onClick={() => generateMutation.mutate()}
+          disabled={generateMutation.isPending}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-60"
+        >
+          {generateMutation.isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Generating...
+            </>
+          ) : hasGenerated ? (
+            <>
+              <Sparkles className="h-4 w-4" />
+              Regenerate
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4" />
+              Generate Reply
+            </>
+          )}
+        </button>
 
-        {/* Reply textarea */}
+        {/* Reply textarea + action buttons — shown after first generation */}
         {hasGenerated && (
-          <div className="space-y-3">
+          <div className="mt-3 space-y-3">
             <textarea
               value={replyBody}
               onChange={(e) => setReplyBody(e.target.value)}
@@ -146,19 +155,6 @@ export default function ReplyDraft({ emailId, onSend }) {
                   <Send className="h-4 w-4" />
                 )}
                 Send Reply
-              </button>
-
-              <button
-                onClick={() => generateMutation.mutate()}
-                disabled={generateMutation.isPending}
-                className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-              >
-                {generateMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
-                Regenerate
               </button>
 
               <button

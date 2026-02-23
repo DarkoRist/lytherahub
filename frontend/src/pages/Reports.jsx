@@ -189,7 +189,7 @@ export default function Reports() {
           ) : (
             <Sparkles className="h-4 w-4" />
           )}
-          Generate Now
+          Generate {activeTab === 'daily' ? 'Daily' : activeTab === 'weekly' ? 'Weekly' : 'Monthly'} Report
         </button>
       </div>
 

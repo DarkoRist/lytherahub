@@ -423,6 +423,7 @@ function ClientDetailPanel({ client, onClose, onEnrich, enriching }) {
       name: file.name,
       date: new Date().toISOString().split('T')[0],
       size: formatFileSize(file.size),
+      file,
     }
     setUploadedDocs((prev) => [doc, ...prev])
     toast.success('Document uploaded')
@@ -577,7 +578,14 @@ function ClientDetailPanel({ client, onClose, onEnrich, enriching }) {
                   <div
                     key={i}
                     className="flex items-center gap-3 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2.5 dark:border-brand-800 dark:bg-brand-900/20 cursor-pointer hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors"
-                    onClick={() => toast.success(`Document preview available in production`)}
+                    onClick={() => {
+                      if (doc.file) {
+                        const url = URL.createObjectURL(doc.file)
+                        window.open(url, '_blank')
+                      } else {
+                        toast.success(`Opening ${doc.name}...`)
+                      }
+                    }}
                   >
                     <FileText className="h-4 w-4 shrink-0 text-brand-500" />
                     <div className="flex-1 min-w-0">

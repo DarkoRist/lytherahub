@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Mail,
   Calendar,
@@ -121,7 +121,19 @@ function SkeletonItem() {
   )
 }
 
+const typeRoutes = {
+  email: '/inbox',
+  meeting: '/calendar',
+  calendar: '/calendar',
+  invoice: '/invoices',
+  client: '/clients',
+  task: '/tasks',
+  automation: '/automations',
+  alert: '/dashboard',
+}
+
 export default function ActivityFeed() {
+  const navigate = useNavigate()
   const {
     data: activities,
     isLoading,
@@ -192,7 +204,8 @@ export default function ActivityFeed() {
               return (
                 <div
                   key={activity.id || index}
-                  className={`flex items-start gap-3 rounded-lg border-l-2 p-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 ${config.borderColor}`}
+                  onClick={() => navigate(typeRoutes[activity.type] || '/dashboard')}
+                  className={`flex cursor-pointer items-start gap-3 rounded-lg border-l-2 p-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 ${config.borderColor}`}
                 >
                   <div
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${config.bgColor}`}

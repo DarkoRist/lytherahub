@@ -23,6 +23,40 @@ import MeetingPrep from '../components/calendar/MeetingPrep'
 // ---------------------------------------------------------------------------
 // Demo fallback data
 // ---------------------------------------------------------------------------
+
+function generatePrepBrief(template, attendees) {
+  const attendeeNames = attendees.map(a => a.name).join(', ') || 'team members'
+  const briefTemplates = [
+    {
+      bg: `Recurring ${template.type} with ${attendeeNames}. This team has been collaborating for 3 months on the current project phase.`,
+      last: `Last sync was 5 days ago. Discussed feature prioritization and Q2 roadmap alignment. All 3 action items were completed on time.`,
+      invoices: `No outstanding invoices for this engagement.`,
+      points: ['Review deliverables completed since last meeting', 'Discuss any blockers or resource constraints', 'Align on priorities for the coming week', 'Confirm next milestone deadlines']
+    },
+    {
+      bg: `${template.title} — key client relationship meeting. ${attendeeNames} representing the client side. Deal value: €45,000.`,
+      last: `Exchanged 4 emails last week regarding contract terms. Client requested updated pricing for add-on modules. Proposal sent on Friday — awaiting feedback.`,
+      invoices: `1 open invoice: INV-2026-024 (€5,500) due in 6 days. Payment expected on time based on history.`,
+      points: ['Follow up on proposal feedback', 'Discuss implementation timeline', 'Review service level requirements', 'Confirm budget allocation for Q2']
+    },
+    {
+      bg: `Strategy session with ${attendeeNames}. Focus area: growth planning and operational efficiency improvements.`,
+      last: `Last meeting 2 weeks ago covered pipeline review. Won 1 new deal (€22K). Lost 1 lead due to timing. Overall win rate trending up to 60%.`,
+      invoices: `€8,500 overdue from related accounts. Follow-up reminders sent at 7 and 14 day marks.`,
+      points: ['Review pipeline conversion metrics', 'Discuss high-value prospects in negotiation', 'Plan outreach for stale leads (3 clients, 10+ days)', 'Set targets for next quarter']
+    },
+    {
+      bg: `Technical review with ${attendeeNames}. Agenda covers product updates, integration status, and client feedback analysis.`,
+      last: `Sprint retrospective identified 2 improvement areas. Team velocity increased 15% this sprint. 1 critical bug resolved ahead of deadline.`,
+      invoices: `All invoices current. €12,300 in payments expected this week.`,
+      points: ['Demo new features completed this sprint', 'Review client feedback and support tickets', 'Discuss technical debt priorities', 'Plan capacity for upcoming integrations']
+    },
+  ]
+  const idx = Math.abs(template.title.length + attendees.length) % briefTemplates.length
+  const b = briefTemplates[idx]
+  return `Background: ${b.bg}\n\nLast Interaction: ${b.last}\n\nOpen Invoices: ${b.invoices}\n\nTalking Points:\n- ${b.points.join('\n- ')}`
+}
+
 function generateDemoEvents() {
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -91,9 +125,7 @@ function generateDemoEvents() {
         location: t.location,
         attendees,
         is_meeting: t.is_meeting,
-        prep_brief: dayOffset <= 1 && t.is_meeting
-          ? `Background: This is a ${t.is_meeting ? 'recurring' : 'one-time'} ${t.type} with key stakeholders.\n\nLast Interaction: Discussed project milestones and deliverables two weeks ago. All action items were completed.\n\nOpen Invoices: No outstanding invoices for this client.\n\nTalking Points:\n- Review progress on current deliverables\n- Discuss timeline for next phase\n- Align on budget and resource allocation\n- Address any blockers or concerns`
-          : null,
+        prep_brief: t.is_meeting ? generatePrepBrief(t, attendees) : null,
         action_items: t.is_meeting ? ['Follow up on action items', 'Send meeting notes'] : null,
         description: t.is_meeting ? `Regular ${t.type} to discuss project progress and next steps.` : null,
       })

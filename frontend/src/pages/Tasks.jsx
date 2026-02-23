@@ -72,7 +72,7 @@ function formatDueDate(dateStr) {
   return { text: due.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), className: 'text-slate-500 dark:text-slate-400' }
 }
 
-function TaskCard({ task, onStatusChange, onDelete }) {
+function TaskCard({ task, onStatusChange, onDelete, onSelect }) {
   const [dragging, setDragging] = useState(false)
   const priority = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium
   const source = SOURCE_CONFIG[task.source] || SOURCE_CONFIG.manual
@@ -91,11 +91,14 @@ function TaskCard({ task, onStatusChange, onDelete }) {
       draggable
       onDragStart={handleDragStart}
       onDragEnd={() => setDragging(false)}
+      onClick={(e) => {
+        if (!e.defaultPrevented) onSelect?.(task)
+      }}
       className={`group rounded-lg border bg-white p-3 shadow-sm transition-all dark:bg-slate-800 ${
         dragging
           ? 'opacity-50 border-brand-400 ring-2 ring-brand-200 dark:ring-brand-700'
           : 'border-slate-200 dark:border-slate-700 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600'
-      } cursor-grab active:cursor-grabbing`}
+      } cursor-pointer`}
     >
       {/* Header: priority badge + source */}
       <div className="flex items-center justify-between mb-2">
@@ -138,7 +141,7 @@ function TaskCard({ task, onStatusChange, onDelete }) {
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           {task.status !== 'done' && (
             <button
-              onClick={() => onStatusChange(task.id, task.status === 'todo' ? 'in_progress' : 'done')}
+              onClick={(e) => { e.preventDefault(); onStatusChange(task.id, task.status === 'todo' ? 'in_progress' : 'done') }}
               className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-brand-600 dark:hover:bg-slate-700 dark:hover:text-brand-400"
               title={task.status === 'todo' ? 'Start' : 'Complete'}
             >
@@ -146,7 +149,7 @@ function TaskCard({ task, onStatusChange, onDelete }) {
             </button>
           )}
           <button
-            onClick={() => onDelete(task.id)}
+            onClick={(e) => { e.preventDefault(); onDelete(task.id) }}
             className="rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/30 dark:hover:text-red-400"
             title="Delete"
           >
@@ -158,7 +161,7 @@ function TaskCard({ task, onStatusChange, onDelete }) {
   )
 }
 
-function KanbanColumn({ column, tasks, onStatusChange, onDelete }) {
+function KanbanColumn({ column, tasks, onStatusChange, onDelete, onSelect }) {
   const [dragOver, setDragOver] = useState(false)
   const Icon = column.icon
 
@@ -214,6 +217,7 @@ function KanbanColumn({ column, tasks, onStatusChange, onDelete }) {
               task={task}
               onStatusChange={onStatusChange}
               onDelete={onDelete}
+              onSelect={onSelect}
             />
           ))
         )}
@@ -333,10 +337,76 @@ function AddTaskModal({ open, onClose, onAdd }) {
   )
 }
 
+function TaskDetailPanel({ task, onClose, onStatusChange, onDelete }) {
+  if (!task) return null
+  const priority = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium
+  const source = SOURCE_CONFIG[task.source] || SOURCE_CONFIG.manual
+  const PriorityIcon = priority.icon
+  const dueInfo = formatDueDate(task.due_date)
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/30" onClick={onClose}>
+      <div
+        className="w-full max-w-md bg-white dark:bg-slate-900 h-full shadow-xl overflow-y-auto border-l border-slate-200 dark:border-slate-700"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Task Details</h3>
+          <button onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="p-6 space-y-5">
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${priority.color}`}>
+              <PriorityIcon className="h-3.5 w-3.5" />
+              {priority.label}
+            </span>
+            <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-400 capitalize">
+              {task.status.replace('_', ' ')}
+            </span>
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">{task.title}</h2>
+          {task.description && (
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{task.description}</p>
+          )}
+          {dueInfo && (
+            <div className={`flex items-center gap-2 text-sm ${dueInfo.className}`}>
+              <CalendarIcon className="h-4 w-4" />
+              {dueInfo.text}
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <span>Source:</span>
+            <span className="capitalize font-medium">{task.source}</span>
+          </div>
+          <div className="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+            {task.status !== 'done' && (
+              <button
+                onClick={() => { onStatusChange(task.id, task.status === 'todo' ? 'in_progress' : 'done'); onClose() }}
+                className="flex-1 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+              >
+                {task.status === 'todo' ? 'Start Task' : 'Mark Complete'}
+              </button>
+            )}
+            <button
+              onClick={() => { onDelete(task.id); onClose() }}
+              className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Tasks() {
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [selectedTask, setSelectedTask] = useState(null)
   const [filterPriority, setFilterPriority] = useState('')
   const [filterSource, setFilterSource] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -509,6 +579,7 @@ export default function Tasks() {
             tasks={grouped[col.id] || []}
             onStatusChange={handleStatusChange}
             onDelete={handleDelete}
+            onSelect={setSelectedTask}
           />
         ))}
       </div>
@@ -519,6 +590,16 @@ export default function Tasks() {
         onClose={() => setShowModal(false)}
         onAdd={handleAdd}
       />
+
+      {/* Task detail panel */}
+      {selectedTask && (
+        <TaskDetailPanel
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   )
 }

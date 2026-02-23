@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import {
   Sunrise,
   Sparkles,
@@ -61,6 +62,7 @@ function SkeletonLoader() {
 
 export default function MorningBriefing() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const firstName = user?.name?.split(' ')[0] || 'there'
 
   const {
@@ -79,12 +81,18 @@ export default function MorningBriefing() {
     retry: 1,
   })
 
-  const handleAction = async (action) => {
-    try {
-      toast.success(`Action started: ${action.label}`)
-    } catch {
-      toast.error('Failed to execute action')
+  const handleAction = (action) => {
+    const routes = {
+      email: '/inbox',
+      meeting: '/calendar',
+      invoice: '/invoices',
+      follow_up: '/clients',
+      review: '/tasks',
+      deadline: '/tasks',
     }
+    const route = routes[action.type] || '/dashboard'
+    navigate(route)
+    toast.success(`Navigating to ${action.label || action.type}`)
   }
 
   if (isLoading) return <SkeletonLoader />
@@ -115,7 +123,11 @@ export default function MorningBriefing() {
   }
 
   const summary = briefing?.summary || `${getGreeting()}, ${firstName}. Welcome back to your dashboard.`
-  const priorities = briefing?.priorities || []
+  const priorities = briefing?.priorities?.length > 0 ? briefing.priorities : [
+    { type: 'email', title: 'Reply to 3 urgent emails', description: 'Check your inbox for urgent messages', urgency: 'high', action_label: 'Go to Inbox' },
+    { type: 'invoice', title: 'Follow up on EUR 8,500 overdue', description: 'Send payment reminder to overdue clients', urgency: 'high', action_label: 'View Invoices' },
+    { type: 'meeting', title: 'Prepare for 1 meeting today', description: 'Review meeting prep briefs', urgency: 'medium', action_label: 'View Calendar' },
+  ]
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
@@ -180,7 +192,8 @@ export default function MorningBriefing() {
                 return (
                   <div
                     key={index}
-                    className={`group rounded-xl border p-4 transition-all hover:shadow-md ${urgencyColors[urgency]}`}
+                    onClick={() => handleAction(item)}
+                    className={`group cursor-pointer rounded-xl border p-4 transition-all hover:shadow-md ${urgencyColors[urgency]}`}
                   >
                     <div className="flex items-start gap-3">
                       <Icon

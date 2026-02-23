@@ -103,7 +103,7 @@ function ActionDropdown({ invoice, onAction }) {
     ...(invoice.status !== 'paid'
       ? [{ key: 'mark_paid', label: 'Mark as Paid', icon: CheckCircle2 }]
       : []),
-    ...(invoice.status === 'overdue'
+    ...(invoice.status !== 'paid'
       ? [{ key: 'remind', label: 'Send Reminder', icon: Bell }]
       : []),
     { key: 'edit', label: 'Edit', icon: Pencil },

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { Mail, Calendar, Receipt, Users, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import api from '../../api/client'
 import { formatCurrency } from '../../utils/formatters'
@@ -115,7 +116,15 @@ function TrendIndicator({ value }) {
   )
 }
 
+const navTargets = {
+  unread_emails: '/inbox',
+  today_meetings: '/calendar',
+  outstanding_invoices: '/invoices',
+  active_clients: '/clients',
+}
+
 export default function StatsGrid() {
+  const navigate = useNavigate()
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard', 'stats'],
     queryFn: async () => {
@@ -150,7 +159,8 @@ export default function StatsGrid() {
         return (
           <div
             key={card.key}
-            className="group rounded-xl border border-slate-200 bg-white p-5 transition-all hover:shadow-md hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-600"
+            onClick={() => navigate(navTargets[card.key])}
+            className="group cursor-pointer rounded-xl border border-slate-200 bg-white p-5 transition-all hover:shadow-md hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-600"
           >
             <div className="flex items-center justify-between mb-4">
               <div

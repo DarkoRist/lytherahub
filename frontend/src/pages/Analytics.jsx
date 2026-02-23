@@ -454,10 +454,18 @@ export default function Analytics() {
       {tab === 'productivity' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <StatCard icon={Mail} label="Emails (30d)" value={productivity.emails_received} suffix={`${productivity.email_response_rate}% read`} color="text-brand-600" />
-            <StatCard icon={Calendar} label="Meetings (30d)" value={productivity.meetings_held} color="text-purple-600" />
-            <StatCard icon={CheckCircle2} label="Tasks Completed" value={productivity.tasks_completed} suffix={`/ ${productivity.tasks_total}`} color="text-emerald-600" />
-            <StatCard icon={AlertTriangle} label="Tasks Overdue" value={productivity.tasks_overdue} color="text-red-600" />
+            <div className="cursor-pointer" onClick={() => navigate('/inbox')}>
+              <StatCard icon={Mail} label="Emails (30d)" value={productivity.emails_received} suffix={`${productivity.email_response_rate}% read`} color="text-brand-600" />
+            </div>
+            <div className="cursor-pointer" onClick={() => navigate('/calendar')}>
+              <StatCard icon={Calendar} label="Meetings (30d)" value={productivity.meetings_held} color="text-purple-600" />
+            </div>
+            <div className="cursor-pointer" onClick={() => navigate('/tasks')}>
+              <StatCard icon={CheckCircle2} label="Tasks Completed" value={productivity.tasks_completed} suffix={`/ ${productivity.tasks_total}`} color="text-emerald-600" />
+            </div>
+            <div className="cursor-pointer" onClick={() => navigate('/tasks')}>
+              <StatCard icon={AlertTriangle} label="Tasks Overdue" value={productivity.tasks_overdue} color="text-red-600" />
+            </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">

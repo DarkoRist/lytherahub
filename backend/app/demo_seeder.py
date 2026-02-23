@@ -2,7 +2,7 @@
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 from sqlalchemy import select
@@ -38,9 +38,7 @@ def _parse_dt(val: str | None) -> datetime | None:
     if val is None:
         return None
     dt = datetime.fromisoformat(val.replace("Z", "+00:00"))
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt
+    return dt.replace(tzinfo=None)
 
 
 async def seed_demo_data(db: AsyncSession) -> None:

@@ -245,38 +245,14 @@ const PLANS = [
 ]
 
 const FAQS = [
-  {
-    q: 'What is LytheraHub?',
-    a: 'LytheraHub is an AI-powered business operations dashboard that connects all your tools — email, calendar, invoices, CRM, and more — into a single command center. It uses advanced AI to automate admin work, generate reports, and keep your business running smoothly.',
-  },
-  {
-    q: 'Do I need to connect all my tools?',
-    a: "No, start with just one integration and add more whenever you're ready. LytheraHub works with Gmail, Google Calendar, Stripe, Slack, and more. Each integration unlocks new automation capabilities, but even a single connection provides immediate value.",
-  },
-  {
-    q: 'Is my data secure?',
-    a: 'Absolutely. We use enterprise-grade AES-256 encryption at rest and TLS 1.3 in transit. All data is isolated per account in a multi-tenant architecture. We never share your data with third parties, never train AI on your data, and you can export or delete everything at any time. Fully GDPR compliant with EU data centers.',
-  },
-  {
-    q: 'Can I try it for free?',
-    a: 'Yes! Our Free plan includes one email account, five clients, basic AI reports, and a daily morning briefing — no credit card required. You can upgrade to Pro at any time to unlock unlimited capabilities.',
-  },
-  {
-    q: 'How does the AI work?',
-    a: "We use Claude, Anthropic's advanced AI, to analyze your emails, meetings, invoices, and client interactions. The AI classifies incoming messages, generates meeting prep briefs, predicts payment timelines, drafts replies, and compiles daily and weekly business reports — all tailored to your specific business context. Your data is processed securely and never used for training.",
-  },
-  {
-    q: 'Can I use it with my team?',
-    a: 'Yes! The Business plan supports up to 10 team members with role-based access, shared pipelines, team analytics, and collaborative automations. Each team member gets their own inbox view while sharing the company-wide CRM and reporting.',
-  },
-  {
-    q: 'Can I cancel anytime?',
-    a: 'Yes, no long-term contracts or hidden fees. You can downgrade to the free plan or cancel entirely at any time from your Settings page. If you cancel a paid plan, you keep access until the end of your current billing period.',
-  },
-  {
-    q: 'Do you offer refunds?',
-    a: "If you're not satisfied within the first 14 days of a paid plan, we'll issue a full refund — no questions asked. After that, you can cancel anytime but refunds are not available for partial billing periods.",
-  },
+  { q: 'What is LytheraHub?', icon: '🚀', a: 'LytheraHub is an AI-powered business operations dashboard that connects all your tools — email, calendar, invoices, CRM, and more — into a single command center. It uses advanced AI to automate admin work, generate reports, and keep your business running smoothly.' },
+  { q: 'Do I need to connect all my tools?', icon: '🔗', a: "No, start with just one integration and add more whenever you're ready. LytheraHub works with Gmail, Google Calendar, Stripe, Slack, and more. Each integration unlocks new automation capabilities, but even a single connection provides immediate value." },
+  { q: 'Is my data secure?', icon: '🔒', a: 'Absolutely. We use enterprise-grade AES-256 encryption at rest and TLS 1.3 in transit. All data is isolated per account in a multi-tenant architecture. We never share your data with third parties, never train AI on your data, and you can export or delete everything at any time. Fully GDPR compliant with EU data centers.' },
+  { q: 'Can I try it for free?', icon: '🎁', a: 'Yes! Our Free plan includes one email account, five clients, basic AI reports, and a daily morning briefing — no credit card required. You can upgrade to Pro at any time to unlock unlimited capabilities.' },
+  { q: 'How does the AI work?', icon: '🤖', a: "We use Claude, Anthropic's advanced AI, to analyze your emails, meetings, invoices, and client interactions. The AI classifies incoming messages, generates meeting prep briefs, predicts payment timelines, drafts replies, and compiles daily and weekly business reports — all tailored to your specific business context. Your data is processed securely and never used for training." },
+  { q: 'Can I use it with my team?', icon: '👥', a: 'Yes! The Business plan supports up to 10 team members with role-based access, shared pipelines, team analytics, and collaborative automations. Each team member gets their own inbox view while sharing the company-wide CRM and reporting.' },
+  { q: 'Can I cancel anytime?', icon: '✨', a: 'Yes, no long-term contracts or hidden fees. You can downgrade to the free plan or cancel entirely at any time from your Settings page. If you cancel a paid plan, you keep access until the end of your current billing period.' },
+  { q: 'Do you offer refunds?', icon: '💳', a: "If you're not satisfied within the first 14 days of a paid plan, we'll issue a full refund — no questions asked. After that, you can cancel anytime but refunds are not available for partial billing periods." },
 ]
 
 const FOOTER_LINKS = {
@@ -471,7 +447,7 @@ function FeatureMockup({ type, color }) {
 /*  FAQ Item                                                           */
 /* ------------------------------------------------------------------ */
 
-function FAQItem({ question, answer }) {
+function FAQItem({ question, answer, icon }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -480,7 +456,10 @@ function FAQItem({ question, answer }) {
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left bg-white dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
       >
-        <span className="text-base font-semibold text-slate-900 dark:text-white">{question}</span>
+        <span className="flex items-center gap-3 text-base font-semibold text-slate-900 dark:text-white">
+          {icon && <span className="text-xl">{icon}</span>}
+          {question}
+        </span>
         {open ? (
           <ChevronUp className="w-5 h-5 shrink-0 text-slate-400" />
         ) : (
@@ -529,11 +508,8 @@ export default function Landing() {
       {/* ============================================================ */}
       <nav className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link to="/" className="flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
-              <Zap className="h-4 w-4" />
-            </div>
-            LytheraHub
+          <Link to="/" className="flex items-center">
+            <img src="/logo-full.png" className="h-12" alt="LytheraHub" />
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
@@ -985,7 +961,7 @@ export default function Landing() {
           </div>
           <div className="flex flex-col gap-3">
             {FAQS.map((faq) => (
-              <FAQItem key={faq.q} question={faq.q} answer={faq.a} />
+              <FAQItem key={faq.q} question={faq.q} answer={faq.a} icon={faq.icon} />
             ))}
           </div>
         </div>
@@ -1025,11 +1001,8 @@ export default function Landing() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
             <div className="lg:col-span-1">
-              <Link to="/" className="flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
-                  <Zap className="h-4 w-4" />
-                </div>
-                LytheraHub
+              <Link to="/" className="flex items-center">
+                <img src="/logo-full.png" className="h-8" alt="LytheraHub" />
               </Link>
               <p className="mt-4 text-sm text-slate-500 leading-relaxed">
                 The AI-powered command center for modern businesses. Built in Europe, for the world.

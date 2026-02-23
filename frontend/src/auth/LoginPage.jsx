@@ -16,10 +16,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-8">
         {/* Logo */}
         <div className="text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-brand-600 text-white">
-            <Zap className="h-7 w-7" />
-          </div>
-          <h1 className="mt-4 text-3xl font-bold text-slate-900 dark:text-white">LytheraHub AI</h1>
+          <img src="/logo-full.png" className="h-10 mx-auto mb-6" alt="LytheraHub" />
           <p className="mt-2 text-slate-500 dark:text-slate-400">Your Business on Autopilot</p>
         </div>
 

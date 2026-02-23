@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useMutation } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import {
   Sparkles,
   Send,
@@ -11,6 +12,16 @@ import {
 } from 'lucide-react'
 import api from '../../api/client'
 import toast from 'react-hot-toast'
+
+const ACTION_ROUTES = {
+  'View Calendar': '/calendar',
+  'Open Inbox': '/inbox',
+  'Open Pipeline': '/clients',
+  'Send Reminders': '/invoices',
+  'View Revenue Report': '/reports',
+  'Generate Full Report': '/reports',
+  'Open Tasks': '/tasks',
+}
 
 const exampleCommands = [
   'Schedule a meeting with Hans tomorrow at 2pm',
@@ -44,6 +55,7 @@ export default function CommandBar() {
   const [input, setInput] = useState('')
   const [response, setResponse] = useState(null)
   const inputRef = useRef(null)
+  const navigate = useNavigate()
 
   const commandMutation = useMutation({
     mutationFn: async (text) => {
@@ -194,7 +206,14 @@ export default function CommandBar() {
                     {response.actions.map((action, i) => (
                       <button
                         key={i}
-                        onClick={() => toast.success(`Action: ${action.label}`)}
+                        onClick={() => {
+                          const route = ACTION_ROUTES[action.label] || action.url
+                          if (route) {
+                            navigate(route)
+                          } else {
+                            toast.success(`Action: ${action.label}`)
+                          }
+                        }}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700 transition-colors hover:bg-violet-100 dark:border-violet-700 dark:bg-violet-900/20 dark:text-violet-300 dark:hover:bg-violet-900/40"
                       >
                         <Lightbulb className="h-3 w-3" />

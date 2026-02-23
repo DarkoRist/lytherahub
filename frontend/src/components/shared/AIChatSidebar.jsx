@@ -192,6 +192,24 @@ function getChatDemoReply(text, messages = []) {
     return "Today's schedule:\n\n**10:00 AM** — Team Standup (15 min)\n**3:00 PM** — Client Call with Hans Weber, TechVision GmbH\n  📋 Prep brief ready: Q1 contract review, open invoice EUR 3,200\n\n**Tomorrow:**\n**9:30 AM** — BioPharm Research Partnership Call\n**2:00 PM** — SecureNet Kickoff Meeting\n\nYou have 3 free slots today: 11-12, 1-2:30, and 4-5. Want me to schedule something?"
   }
 
+  // --- Short / ambiguous message: use conversation context rather than resetting ---
+  if (t.length <= 10 || /^[\d\w]+ \d{1,2}$/.test(t) || /^\w{3,9} \d{1,2}$/.test(t)) {
+    const lastAI = getLastAIMessage(messages)
+    if (lastAI && lastAI.length > 20) {
+      const ctx = lastAI.toLowerCase()
+      if (ctx.includes('schedule') || ctx.includes('free slot') || ctx.includes('calendar') || ctx.includes('meeting')) {
+        return `Got it — I'll check availability around that date. Do you want me to schedule something specific, or would you like to see what's on the calendar then?`
+      }
+      if (ctx.includes('invoice') || ctx.includes('overdue') || ctx.includes('payment')) {
+        return `Understood. I'll filter invoices by that date. Want me to show all invoices due around that time, or just the overdue ones?`
+      }
+      if (ctx.includes('report') || ctx.includes('revenue') || ctx.includes('summary')) {
+        return `I'll pull the data for that period. Should I show a summary or a full breakdown?`
+      }
+      return `I see you're referencing "${text.trim()}" — can you give me a bit more context? I want to make sure I'm helping with the right thing.`
+    }
+  }
+
   // --- Default / fallback ---
   return "I'm your AI business assistant. I have access to all your business data. Here's what I can help with:\n\n📧 **Emails** — \"How many urgent emails do I have?\"\n📅 **Calendar** — \"What's my schedule tomorrow?\"\n💰 **Invoices** — \"Which invoices are overdue?\"\n👥 **Clients** — \"Show me my pipeline\"\n📊 **Revenue** — \"How much revenue this month?\"\n✅ **Tasks** — \"What's due today?\"\n✍️ **Draft** — \"Reply to Hans\" or \"Compose an email\"\n⏰ **Reminders** — \"Follow up with CloudFirst\"\n\nJust ask in plain English!"
 }
@@ -250,6 +268,7 @@ export default function AIChatSidebar() {
         message: text.trim(),
         session_id: sessionId,
         page_context: getPageContext(),
+        messages: currentMessages,
       })
       setSessionId(data.session_id)
       setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }])

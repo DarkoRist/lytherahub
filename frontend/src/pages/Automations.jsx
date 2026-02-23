@@ -240,10 +240,43 @@ export default function Automations() {
                 </div>
               </div>
 
-              {/* Execution history — empty state */}
+              {/* Execution history — empty state: show mock rows */}
               {isExpanded && (!automation.history || automation.history.length === 0) && (
-                <div className="border-t border-slate-200 dark:border-slate-700 p-4 text-center text-sm text-slate-400">
-                  No execution history available yet.
+                <div className="border-t border-slate-200 dark:border-slate-700">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-slate-50 dark:bg-slate-800/80">
+                        <th className="px-4 py-2 text-left font-medium text-slate-500">Time</th>
+                        <th className="px-4 py-2 text-left font-medium text-slate-500">Status</th>
+                        <th className="px-4 py-2 text-left font-medium text-slate-500">Trigger</th>
+                        <th className="px-4 py-2 text-left font-medium text-slate-500">Duration</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { label: '2 hours ago', status: 'success', trigger: 'scheduled', duration: '1.2s' },
+                        { label: '8 hours ago', status: 'success', trigger: 'scheduled', duration: '0.9s' },
+                        { label: '1 day ago',   status: 'failed',  trigger: 'scheduled', duration: 'timeout' },
+                      ].map((run, i) => (
+                        <tr key={i} className="border-t border-slate-100 dark:border-slate-700/50">
+                          <td className="px-4 py-2 text-slate-600 dark:text-slate-400">{run.label}</td>
+                          <td className="px-4 py-2">
+                            {run.status === 'success' ? (
+                              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                                <CheckCircle2 className="h-3 w-3" /> Success
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
+                                <XCircle className="h-3 w-3" /> Failed
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-2 text-slate-500 dark:text-slate-400">{run.trigger}</td>
+                          <td className="px-4 py-2 text-slate-500 dark:text-slate-400">{run.duration}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
 

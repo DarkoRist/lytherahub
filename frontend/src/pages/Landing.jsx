@@ -590,8 +590,7 @@ export default function Landing() {
             <button onClick={() => scrollTo('features')} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors cursor-pointer">Features</button>
             <button onClick={() => scrollTo('how-it-works')} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors cursor-pointer">How it Works</button>
             <button onClick={() => scrollTo('integrations')} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors cursor-pointer">Integrations</button>
-            <button onClick={() => scrollTo('pricing')} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors cursor-pointer">Pricing</button>
-            <button onClick={() => scrollTo('faq')} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors cursor-pointer">FAQ</button>
+<button onClick={() => scrollTo('faq')} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors cursor-pointer">FAQ</button>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
@@ -614,7 +613,7 @@ export default function Landing() {
 
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-4 space-y-1">
-            {['features', 'how-it-works', 'integrations', 'pricing', 'faq'].map((id) => (
+            {['features', 'how-it-works', 'integrations', 'faq'].map((id) => (
               <button key={id} onClick={() => scrollTo(id)} className="block w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 cursor-pointer capitalize">
                 {id.replace(/-/g, ' ')}
               </button>
@@ -927,95 +926,6 @@ export default function Landing() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/*  SECTION 8: PRICING                                           */}
-      {/* ============================================================ */}
-      <section id="pricing" className="py-24 sm:py-32 bg-slate-50 dark:bg-slate-900/50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Simple, Transparent Pricing
-            </h2>
-            <p className="mt-4 text-lg text-slate-600 dark:text-slate-400">
-              Start free, upgrade when you need more. No surprises.
-            </p>
-          </div>
-
-          {/* Annual/Monthly toggle */}
-          <div className="flex items-center justify-center gap-3 mb-12">
-            <span className={`text-sm font-medium ${!annual ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>Monthly</span>
-            <button
-              onClick={() => setAnnual(!annual)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors ${annual ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'}`}
-            >
-              <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform mt-0.5 ${annual ? 'translate-x-5' : 'translate-x-0.5'}`} />
-            </button>
-            <span className={`text-sm font-medium ${annual ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>
-              Annual <span className="text-blue-600 font-semibold">(-20%)</span>
-            </span>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto items-start">
-            {PLANS.map((plan) => {
-              const price = annual ? plan.annual : plan.monthly
-              const isPro = plan.name === 'Pro'
-              return (
-                <div
-                  key={plan.name}
-                  className={`relative flex flex-col rounded-2xl border p-8 transition-all hover:shadow-lg ${
-                    isPro
-                      ? 'border-blue-500 bg-white dark:bg-slate-800 shadow-lg scale-[1.02] lg:scale-105'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60'
-                  }`}
-                >
-                  {plan.badge && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                      <span className={`inline-flex items-center gap-1 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-wider text-white ${
-                        isPro ? 'bg-blue-600' : 'bg-emerald-600'
-                      }`}>
-                        {isPro && <Star className="w-3 h-3 fill-current" />}
-                        {plan.badge}
-                      </span>
-                    </div>
-                  )}
-
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{plan.name}</h3>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{plan.desc}</p>
-
-                  <div className="mt-6 flex items-baseline gap-1">
-                    <span className="text-4xl font-extrabold text-slate-900 dark:text-white">&euro;{price}</span>
-                    <span className="text-slate-500 text-sm">/month</span>
-                  </div>
-                  {annual && price > 0 && (
-                    <p className="mt-1 text-xs text-blue-600">Billed annually (&euro;{price * 12}/year)</p>
-                  )}
-
-                  <ul className="mt-8 flex flex-col gap-3 flex-1">
-                    {plan.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2.5 text-sm text-slate-700 dark:text-slate-300">
-                        <Check className="w-4 h-4 mt-0.5 shrink-0 text-blue-500" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <button
-                    onClick={plan.name !== 'Business' ? handleStartFree : undefined}
-                    className={`mt-8 w-full py-3 px-6 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
-                      isPro
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-600'
-                    }`}
-                  >
-                    {plan.cta}
-                  </button>
-                </div>
-              )
-            })}
           </div>
         </div>
       </section>

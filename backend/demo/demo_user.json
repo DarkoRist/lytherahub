@@ -1,0 +1,9 @@
+{
+  "id": "demo-user-001",
+  "email": "demo@lytherahub.ai",
+  "name": "Darko (Demo)",
+  "picture": null,
+  "plan": "pro",
+  "timezone": "Europe/Berlin",
+  "onboarding_completed": true
+}

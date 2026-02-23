@@ -2,7 +2,7 @@
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from sqlalchemy import select
@@ -21,7 +21,7 @@ from app.models.database import (
     User,
 )
 
-DEMO_DIR = Path(__file__).resolve().parent.parent.parent / "demo"
+DEMO_DIR = Path(__file__).resolve().parent.parent / "demo"
 DEMO_USER_ID = "demo-user-001"
 
 
@@ -37,7 +37,10 @@ def _load_json(filename: str) -> list | dict:
 def _parse_dt(val: str | None) -> datetime | None:
     if val is None:
         return None
-    return datetime.fromisoformat(val.replace("Z", "+00:00"))
+    dt = datetime.fromisoformat(val.replace("Z", "+00:00"))
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
 
 
 async def seed_demo_data(db: AsyncSession) -> None:

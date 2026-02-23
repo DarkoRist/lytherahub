@@ -166,8 +166,8 @@ async def generate_meeting_prep(
 async def suggest_meeting_time(preferences: str, busy_slots: list[dict]) -> list[dict]:
     """Suggest optimal meeting times based on availability."""
     # In demo mode, return hardcoded suggestions
-    from datetime import datetime, timedelta
-    now = datetime.now()
+    from datetime import datetime, timedelta, timezone
+    now = datetime.now(timezone.utc)
     tomorrow = now + timedelta(days=1)
     return [
         {"start": tomorrow.replace(hour=10, minute=0).isoformat(), "end": tomorrow.replace(hour=11, minute=0).isoformat()},
@@ -343,11 +343,11 @@ async def generate_reminder_email(
 async def forecast_cashflow(invoices_data: list[dict], days: int = 30) -> list[dict]:
     """Forecast cash flow based on invoice data and payment patterns."""
     # Demo fallback — simple projection
-    from datetime import datetime, timedelta
+    from datetime import datetime, timedelta, timezone
     forecast = []
     cumulative = 0.0
     for i in range(days):
-        date = (datetime.now() + timedelta(days=i)).strftime("%Y-%m-%d")
+        date = (datetime.now(timezone.utc) + timedelta(days=i)).strftime("%Y-%m-%d")
         expected = sum(
             inv.get("amount", 0) * 0.8  # 80% collection probability
             for inv in invoices_data

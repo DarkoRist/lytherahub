@@ -1,0 +1,202 @@
+[
+  {
+    "id": "t-001",
+    "client_id": "c-013",
+    "title": "Fix SmartHome IoT dashboard chart rendering bug",
+    "description": "Charts not loading on IoT dashboard after latest deployment. Investor demo tomorrow. URGENT.",
+    "priority": "urgent",
+    "status": "in_progress",
+    "due_date": "2026-02-15T18:00:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-002",
+    "client_id": "c-015",
+    "title": "Reply to BioPharm Research inquiry",
+    "description": "Dr. Andreas Vogel sent high-value inquiry (€70K+) for clinical trial data visualization. Respond within 24 hours.",
+    "priority": "high",
+    "status": "todo",
+    "due_date": "2026-02-16T12:00:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-003",
+    "client_id": "c-010",
+    "title": "Prepare SecureNet kickoff meeting materials",
+    "description": "Kickoff meeting Feb 18. Prepare: project timeline, team structure, access requirements, sprint plan.",
+    "priority": "high",
+    "status": "todo",
+    "due_date": "2026-02-17T18:00:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-004",
+    "client_id": null,
+    "title": "Gather 2025 tax documents",
+    "description": "Tax accountant needs by March 15: invoices, expenses, bank statements, insurance, contractor agreements.",
+    "priority": "medium",
+    "status": "todo",
+    "due_date": "2026-03-15T00:00:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-005",
+    "client_id": "c-002",
+    "title": "Follow up on CloudFirst overdue invoice",
+    "description": "Invoice INV-2026-020 (€8,500) is 10 days overdue. Anna promised payment by end of week. Verify payment received.",
+    "priority": "high",
+    "status": "todo",
+    "due_date": "2026-02-16T00:00:00Z",
+    "source": "automation"
+  },
+  {
+    "id": "t-006",
+    "client_id": "c-001",
+    "title": "Prepare annual contract draft for TechVision",
+    "description": "Hans wants to formalize annual partnership. Draft contract terms before Friday call.",
+    "priority": "high",
+    "status": "in_progress",
+    "due_date": "2026-02-15T09:30:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-007",
+    "client_id": "c-003",
+    "title": "Send FinanceHub proposal revision",
+    "description": "Address Michael's questions: 7-week timeline, Stripe migration included, 3-month warranty. Update proposal doc.",
+    "priority": "medium",
+    "status": "todo",
+    "due_date": "2026-02-18T00:00:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-008",
+    "client_id": "c-006",
+    "title": "Scope customer segmentation module for RetailMax",
+    "description": "Thomas requested: RFM analysis, cohort analysis, custom segment builder, marketing tool export. Prepare quote.",
+    "priority": "medium",
+    "status": "todo",
+    "due_date": "2026-02-19T00:00:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-009",
+    "client_id": "c-010",
+    "title": "Share team structure with SecureNet",
+    "description": "Klaus shared their team (4 people). Need to respond with our team structure for the project.",
+    "priority": "medium",
+    "status": "todo",
+    "due_date": "2026-02-17T00:00:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-010",
+    "client_id": null,
+    "title": "Prepare Q1 financial slides for Board Meeting",
+    "description": "Board meeting today at 2 PM. Need slides covering revenue, growth, client metrics, Q2 plan.",
+    "priority": "urgent",
+    "status": "in_progress",
+    "due_date": "2026-02-15T13:30:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-011",
+    "client_id": "c-004",
+    "title": "Schedule discovery call with GreenEnergy",
+    "description": "Lisa Braun interested in solar monitoring dashboard. Prepare IoT portfolio examples before call.",
+    "priority": "medium",
+    "status": "done",
+    "due_date": "2026-02-14T00:00:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-012",
+    "client_id": "c-007",
+    "title": "Schedule DataStream Q1 review",
+    "description": "Julia requested Q1 review in first week of March. Set up meeting and prepare progress report.",
+    "priority": "low",
+    "status": "todo",
+    "due_date": "2026-02-28T00:00:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-013",
+    "client_id": "c-006",
+    "title": "Investigate RetailMax API rate limit increase",
+    "description": "Thomas reports hitting 100 req/s during peak hours, needs 200. Evaluate infrastructure capacity.",
+    "priority": "medium",
+    "status": "todo",
+    "due_date": "2026-02-19T00:00:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-014",
+    "client_id": null,
+    "title": "Set up maintenance notification for Feb 22",
+    "description": "Hetzner server maintenance Feb 22, 2-4 AM CET. Create maintenance page and notify affected clients.",
+    "priority": "low",
+    "status": "todo",
+    "due_date": "2026-02-21T00:00:00Z",
+    "source": "manual"
+  },
+  {
+    "id": "t-015",
+    "client_id": "c-002",
+    "title": "Prepare Kubernetes monitoring estimate for CloudFirst",
+    "description": "Anna wants K8s monitoring added. Scope: 3-4 weeks, €12-15K. Prepare detailed estimate before monthly sync.",
+    "priority": "medium",
+    "status": "todo",
+    "due_date": "2026-02-17T10:00:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-016",
+    "client_id": "c-005",
+    "title": "Address MedTech compliance requirements",
+    "description": "Dr. Hoffmann's team has 3 additional requirements: EU data residency, quarterly audits, 99.9% SLA. Review and respond.",
+    "priority": "high",
+    "status": "todo",
+    "due_date": "2026-02-18T00:00:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-017",
+    "client_id": "c-010",
+    "title": "Review SecureNet updated requirements",
+    "description": "Changed from batch to real-time monitoring, added SIEM integration and SOC2 reporting. Budget increased to €60K.",
+    "priority": "high",
+    "status": "done",
+    "due_date": "2026-02-15T12:00:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-018",
+    "client_id": null,
+    "title": "Update sprint 13 planning board",
+    "description": "Sprint 12 completed (90%). Carry over BIZ-234 (mobile charts) and BIZ-241 (dark mode calendar). Plan sprint 13.",
+    "priority": "medium",
+    "status": "done",
+    "due_date": "2026-02-14T00:00:00Z",
+    "source": "manual"
+  },
+  {
+    "id": "t-019",
+    "client_id": "c-011",
+    "title": "Reply to FoodTech Berlin about pricing",
+    "description": "Sophie asked about startup-friendly pricing and IoT experience. Draft response with tier options.",
+    "priority": "low",
+    "status": "todo",
+    "due_date": "2026-02-17T00:00:00Z",
+    "source": "ai"
+  },
+  {
+    "id": "t-020",
+    "client_id": "c-008",
+    "title": "Prepare LogiTrans PoC proposal",
+    "description": "Peter asked about PoC at reduced rate. SAP integration, mobile app timeline. Draft PoC scope and pricing.",
+    "priority": "medium",
+    "status": "todo",
+    "due_date": "2026-02-20T00:00:00Z",
+    "source": "ai"
+  }
+]

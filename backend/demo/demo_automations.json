@@ -1,0 +1,62 @@
+[
+  {
+    "id": "auto-001",
+    "name": "Email Classification & Summarization",
+    "description": "Automatically classifies incoming emails into categories (urgent, client, invoice, newsletter, spam) and generates AI summaries.",
+    "n8n_workflow_id": "wf-email-classify",
+    "trigger_type": "event",
+    "is_active": true,
+    "last_run": "2026-02-15T11:30:00Z",
+    "run_count": 847
+  },
+  {
+    "id": "auto-002",
+    "name": "Invoice Payment Reminders",
+    "description": "Sends automated payment reminders for overdue invoices. First reminder at 3 days, second at 7 days, escalation at 14 days.",
+    "n8n_workflow_id": "wf-invoice-reminder",
+    "trigger_type": "scheduled",
+    "is_active": true,
+    "last_run": "2026-02-15T09:00:00Z",
+    "run_count": 156
+  },
+  {
+    "id": "auto-003",
+    "name": "Meeting Prep Brief Generator",
+    "description": "Generates AI-powered meeting prep briefs 1 hour before each scheduled meeting, including client background, open invoices, and talking points.",
+    "n8n_workflow_id": "wf-meeting-prep",
+    "trigger_type": "scheduled",
+    "is_active": true,
+    "last_run": "2026-02-15T09:00:00Z",
+    "run_count": 234
+  },
+  {
+    "id": "auto-004",
+    "name": "Weekly Business Report",
+    "description": "Generates a comprehensive weekly business report every Monday morning with revenue, client activity, email stats, and AI insights.",
+    "n8n_workflow_id": "wf-weekly-report",
+    "trigger_type": "scheduled",
+    "is_active": true,
+    "last_run": "2026-02-10T07:00:00Z",
+    "run_count": 42
+  },
+  {
+    "id": "auto-005",
+    "name": "New Lead Onboarding",
+    "description": "When a new client is added, automatically creates a Google Drive folder, sends welcome email, creates onboarding tasks, and notifies via Slack.",
+    "n8n_workflow_id": "wf-lead-onboarding",
+    "trigger_type": "event",
+    "is_active": true,
+    "last_run": "2026-02-11T10:00:00Z",
+    "run_count": 38
+  },
+  {
+    "id": "auto-006",
+    "name": "Stale Lead Alerts",
+    "description": "Checks for clients in lead/contacted stage not contacted in 7+ days and creates alerts with recommended actions.",
+    "n8n_workflow_id": "wf-stale-leads",
+    "trigger_type": "scheduled",
+    "is_active": false,
+    "last_run": "2026-02-08T08:00:00Z",
+    "run_count": 67
+  }
+]

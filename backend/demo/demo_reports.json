@@ -1,0 +1,260 @@
+[
+  {
+    "id": "rpt-001",
+    "type": "daily",
+    "title": "Daily Briefing — February 15, 2026",
+    "content": {
+      "summary": "Busy day ahead with 3 meetings and several urgent items. Revenue tracking well above January pace.",
+      "priorities": [
+        "Reply to SmartHome urgent bug report — investor demo tomorrow",
+        "Respond to BioPharm Research high-value inquiry (€70K+)",
+        "TechVision partnership call at 10:00 AM — discuss annual contract",
+        "Quarterly Board Meeting at 2:00 PM — prepare financials"
+      ],
+      "metrics": {
+        "emails_received": 12,
+        "emails_needing_reply": 9,
+        "meetings_today": 3,
+        "revenue_mtd": 16400,
+        "invoices_outstanding": 4,
+        "overdue_amount": 8500
+      },
+      "ai_insights": [
+        "February revenue is on track to exceed January by 14%",
+        "You have 3 high-value proposals in pipeline totaling €123,000",
+        "SmartHome bug is urgent — prioritize before Board Meeting",
+        "BioPharm Research could be your largest single project"
+      ]
+    },
+    "period_start": "2026-02-15T00:00:00Z",
+    "period_end": "2026-02-15T23:59:59Z",
+    "created_at": "2026-02-15T07:00:00Z"
+  },
+  {
+    "id": "rpt-002",
+    "type": "daily",
+    "title": "Daily Briefing — February 14, 2026",
+    "content": {
+      "summary": "Productive day with 2 payments received and progress on SecureNet deal.",
+      "priorities": [
+        "Follow up on SecureNet NDA — kickoff planning",
+        "Reply to FinanceHub proposal questions",
+        "Review RetailMax payment confirmation"
+      ],
+      "metrics": {
+        "emails_received": 15,
+        "emails_needing_reply": 6,
+        "meetings_today": 1,
+        "revenue_mtd": 13200,
+        "invoices_outstanding": 4,
+        "overdue_amount": 8500
+      },
+      "ai_insights": [
+        "Payments from RetailMax (€3,200) and SmartHome (€5,500) received",
+        "SecureNet NDA signed — project is a go",
+        "Consider prioritizing FinanceHub reply to keep deal momentum"
+      ]
+    },
+    "period_start": "2026-02-14T00:00:00Z",
+    "period_end": "2026-02-14T23:59:59Z",
+    "created_at": "2026-02-14T07:00:00Z"
+  },
+  {
+    "id": "rpt-003",
+    "type": "daily",
+    "title": "Daily Briefing — February 13, 2026",
+    "content": {
+      "summary": "Good client engagement day. GreenEnergy call confirmed, Sprint 12 wrapped up.",
+      "priorities": [
+        "Confirm GreenEnergy discovery call details",
+        "Prepare sprint 13 planning",
+        "Review SmartHome sensor expansion requirements"
+      ],
+      "metrics": {
+        "emails_received": 10,
+        "emails_needing_reply": 4,
+        "meetings_today": 2,
+        "revenue_mtd": 4500,
+        "invoices_outstanding": 5,
+        "overdue_amount": 8500
+      },
+      "ai_insights": [
+        "Sprint 12 completed at 90% — good velocity",
+        "GreenEnergy showing strong interest — prepare well for discovery call",
+        "SmartHome request is low priority — schedule for next sprint"
+      ]
+    },
+    "period_start": "2026-02-13T00:00:00Z",
+    "period_end": "2026-02-13T23:59:59Z",
+    "created_at": "2026-02-13T07:00:00Z"
+  },
+  {
+    "id": "rpt-004",
+    "type": "weekly",
+    "title": "Weekly Report — Feb 10–16, 2026",
+    "content": {
+      "summary": "Strong week with €13,200 in payments received, 2 new leads, and SecureNet deal advancing to kickoff. Pipeline is healthy at €233,000 across 11 active clients.",
+      "revenue": {
+        "payments_received": 13200,
+        "invoices_sent": 25500,
+        "outstanding": 37000,
+        "overdue": 8500
+      },
+      "clients": {
+        "new_leads": 2,
+        "proposals_sent": 1,
+        "deals_won": 0,
+        "deals_lost": 0,
+        "total_pipeline_value": 233000
+      },
+      "productivity": {
+        "emails_received": 50,
+        "emails_replied": 28,
+        "meetings_attended": 8,
+        "tasks_completed": 14,
+        "automations_run": 42
+      },
+      "ai_insights": [
+        "Revenue pace is 14% above January — on track for best month yet",
+        "SecureNet (€60K) is the largest project in pipeline — ensure successful kickoff",
+        "BioPharm Research (€70K) could push Q1 to record levels if converted",
+        "CloudFirst overdue invoice needs resolution — 10 days past due",
+        "3 leads haven't been contacted yet — prioritize outreach"
+      ]
+    },
+    "period_start": "2026-02-10T00:00:00Z",
+    "period_end": "2026-02-16T23:59:59Z",
+    "created_at": "2026-02-15T07:00:00Z"
+  },
+  {
+    "id": "rpt-005",
+    "type": "weekly",
+    "title": "Weekly Report — Feb 3–9, 2026",
+    "content": {
+      "summary": "Solid week focused on client delivery. DataStream payment received, FinanceHub proposal sent, and several productive client meetings.",
+      "revenue": {
+        "payments_received": 4500,
+        "invoices_sent": 12000,
+        "outstanding": 28500,
+        "overdue": 8500
+      },
+      "clients": {
+        "new_leads": 1,
+        "proposals_sent": 2,
+        "deals_won": 0,
+        "deals_lost": 0,
+        "total_pipeline_value": 220000
+      },
+      "productivity": {
+        "emails_received": 38,
+        "emails_replied": 22,
+        "meetings_attended": 6,
+        "tasks_completed": 12,
+        "automations_run": 38
+      },
+      "ai_insights": [
+        "DataStream payment on time — strong client relationship",
+        "FinanceHub proposal needs follow-up within 5 days",
+        "Consider increasing automation for email replies to save time"
+      ]
+    },
+    "period_start": "2026-02-03T00:00:00Z",
+    "period_end": "2026-02-09T23:59:59Z",
+    "created_at": "2026-02-10T07:00:00Z"
+  },
+  {
+    "id": "rpt-006",
+    "type": "monthly",
+    "title": "Monthly Report — January 2026",
+    "content": {
+      "summary": "January was a strong month with €41,300 in revenue (+12% MoM), 3 new clients acquired, and all existing clients retained. Automation saved approximately 18 hours of manual work.",
+      "revenue": {
+        "total": 41300,
+        "change_pct": 12,
+        "by_client": [
+          {"client": "TechVision GmbH", "amount": 12000},
+          {"client": "CloudFirst AG", "amount": 8000},
+          {"client": "SmartHome Systems", "amount": 6000},
+          {"client": "DataStream Analytics", "amount": 4500},
+          {"client": "RetailMax Europe", "amount": 3200},
+          {"client": "Other", "amount": 7600}
+        ],
+        "by_month_trend": [
+          {"month": "Aug 2025", "amount": 22000},
+          {"month": "Sep 2025", "amount": 28000},
+          {"month": "Oct 2025", "amount": 31500},
+          {"month": "Nov 2025", "amount": 35200},
+          {"month": "Dec 2025", "amount": 36800},
+          {"month": "Jan 2026", "amount": 41300}
+        ]
+      },
+      "clients": {
+        "total_active": 8,
+        "new": 3,
+        "churned": 0,
+        "pipeline_value": 215000,
+        "avg_deal_size": 30700
+      },
+      "productivity": {
+        "emails_processed": 180,
+        "meetings_attended": 24,
+        "tasks_completed": 48,
+        "hours_saved_by_automation": 18,
+        "reports_generated": 35
+      },
+      "ai_insights": [
+        "Revenue has grown 88% over the past 6 months (Aug-Jan)",
+        "Average deal size increased to €30,700 from €24,000 in Q3",
+        "Email automation saved 8 hours — consider expanding to replies",
+        "Top growth area: Enterprise SaaS clients (TechVision, SecureNet)",
+        "Recommendation: Hire a junior developer to scale delivery capacity"
+      ]
+    },
+    "period_start": "2026-01-01T00:00:00Z",
+    "period_end": "2026-01-31T23:59:59Z",
+    "created_at": "2026-02-01T07:00:00Z"
+  },
+  {
+    "id": "rpt-007",
+    "type": "monthly",
+    "title": "Monthly Report — December 2025",
+    "content": {
+      "summary": "December closed strong at €36,800 (+4.5% MoM). End-of-year wrap-up with all clients satisfied. 2025 total revenue: €195,000.",
+      "revenue": {
+        "total": 36800,
+        "change_pct": 4.5,
+        "by_client": [
+          {"client": "TechVision GmbH", "amount": 10000},
+          {"client": "CloudFirst AG", "amount": 8000},
+          {"client": "SmartHome Systems", "amount": 6000},
+          {"client": "DataStream Analytics", "amount": 4500},
+          {"client": "RetailMax Europe", "amount": 3200},
+          {"client": "Other", "amount": 5100}
+        ]
+      },
+      "clients": {
+        "total_active": 7,
+        "new": 1,
+        "churned": 1,
+        "pipeline_value": 185000,
+        "avg_deal_size": 26400
+      },
+      "productivity": {
+        "emails_processed": 165,
+        "meetings_attended": 20,
+        "tasks_completed": 42,
+        "hours_saved_by_automation": 15,
+        "reports_generated": 30
+      },
+      "ai_insights": [
+        "2025 total revenue: €195,000 — exceeding initial €150K target",
+        "Lost AutoMotive Plus deal (€40K) — competitor won on price",
+        "SmartHome Systems is growing — upsell potential in Q1",
+        "Year-end client satisfaction: all active clients retained"
+      ]
+    },
+    "period_start": "2025-12-01T00:00:00Z",
+    "period_end": "2025-12-31T23:59:59Z",
+    "created_at": "2026-01-01T07:00:00Z"
+  }
+]

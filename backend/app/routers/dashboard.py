@@ -36,7 +36,7 @@ async def get_dashboard_stats(
 ):
     """Get dashboard statistics for the current user."""
     uid = user.id
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
     today_end = today_start + timedelta(days=1)
 
     unread = (await db.execute(
@@ -120,7 +120,7 @@ async def get_morning_briefing(
         )
     )).scalar() or 0
 
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
     today_end = today_start + timedelta(days=1)
     meetings = (await db.execute(
         select(func.count()).select_from(

@@ -482,7 +482,7 @@ function FAQItem({ question, answer, icon }) {
 export default function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [annual, setAnnual] = useState(false)
-  const { loginDemo } = useAuth()
+  const { loginDemo, hasAccess } = useAuth()
   const navigate = useNavigate()
 
   // Waitlist banner
@@ -515,7 +515,10 @@ export default function Landing() {
     setBannerSubmitted(true)
   }
 
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+
   const handleStartFree = async () => {
+    if (!hasAccess) { scrollToTop(); return }
     try {
       await loginDemo()
       navigate('/dashboard')
@@ -592,9 +595,9 @@ export default function Landing() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/login" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors px-3 py-2">
+            <button onClick={() => hasAccess ? navigate('/login') : scrollToTop()} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors px-3 py-2 cursor-pointer">
               Sign In
-            </Link>
+            </button>
             <button onClick={handleStartFree} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer">
               Start Free <ArrowRight className="w-4 h-4" />
             </button>
@@ -617,7 +620,7 @@ export default function Landing() {
               </button>
             ))}
             <hr className="my-2 border-slate-200" />
-            <Link to="/login" className="block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100">Sign In</Link>
+            <button onClick={() => { setMobileMenuOpen(false); hasAccess ? navigate('/login') : scrollToTop() }} className="block w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 cursor-pointer">Sign In</button>
             <button onClick={handleStartFree} className="mt-1 w-full rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 cursor-pointer">Start Free</button>
           </div>
         )}
@@ -643,7 +646,7 @@ export default function Landing() {
                 Start Free <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </button>
               <button
-                onClick={() => scrollTo('features')}
+                onClick={() => hasAccess ? scrollTo('features') : scrollToTop()}
                 className="inline-flex items-center gap-2 rounded-lg border border-slate-300 dark:border-slate-700 px-8 py-3.5 text-base font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer"
               >
                 <Play className="w-4 h-4" /> Watch Demo

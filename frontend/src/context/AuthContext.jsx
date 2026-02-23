@@ -6,6 +6,9 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [hasAccess, setHasAccess] = useState(
+    () => sessionStorage.getItem('access_granted') === 'true'
+  )
 
   const fetchUser = useCallback(async () => {
     const token = sessionStorage.getItem('lytherahub_token')
@@ -30,6 +33,11 @@ export function AuthProvider({ children }) {
     const params = new URLSearchParams(window.location.search)
     const token = params.get('token')
     const refresh = params.get('refresh')
+    const access = params.get('access')
+    if (access === 'lytherahub2026') {
+      sessionStorage.setItem('access_granted', 'true')
+      setHasAccess(true)
+    }
     if (token) {
       sessionStorage.setItem('lytherahub_token', token)
       if (refresh) sessionStorage.setItem('lytherahub_refresh', refresh)
@@ -58,7 +66,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginDemo, loginGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, hasAccess, loginDemo, loginGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   )

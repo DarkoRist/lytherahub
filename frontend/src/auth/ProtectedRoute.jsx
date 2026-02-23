@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth()
+  const { user, loading, hasAccess } = useAuth()
   const location = useLocation()
 
   if (loading) {
@@ -16,7 +16,7 @@ export default function ProtectedRoute({ children }) {
     )
   }
 
-  if (!user) {
+  if (!user || !hasAccess) {
     return <Navigate to="/" replace />
   }
 

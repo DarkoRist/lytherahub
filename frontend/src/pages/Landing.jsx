@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Mail, Calendar, Receipt, Users, BarChart3, Zap, ArrowRight, Check,
@@ -485,6 +485,36 @@ export default function Landing() {
   const { loginDemo } = useAuth()
   const navigate = useNavigate()
 
+  // Waitlist banner
+  const [bannerVisible, setBannerVisible] = useState(
+    () => sessionStorage.getItem('banner_dismissed') !== 'true'
+  )
+  const [bannerEmail, setBannerEmail] = useState('')
+  const [bannerSubmitted, setBannerSubmitted] = useState(false)
+  const [bannerHeight, setBannerHeight] = useState(0)
+  const bannerRef = useRef(null)
+
+  useEffect(() => {
+    if (!bannerVisible) { setBannerHeight(0); return }
+    const measure = () => {
+      if (bannerRef.current) setBannerHeight(bannerRef.current.offsetHeight)
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [bannerVisible])
+
+  const dismissBanner = () => {
+    sessionStorage.setItem('banner_dismissed', 'true')
+    setBannerVisible(false)
+  }
+
+  const handleWaitlistSubmit = (e) => {
+    e.preventDefault()
+    if (!bannerEmail || !/\S+@\S+\.\S+/.test(bannerEmail)) return
+    setBannerSubmitted(true)
+  }
+
   const handleStartFree = async () => {
     try {
       await loginDemo()
@@ -501,12 +531,53 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-x-hidden" style={{ paddingTop: bannerVisible ? bannerHeight : 0 }}>
+
+      {/* ============================================================ */}
+      {/*  WAITLIST BANNER                                             */}
+      {/* ============================================================ */}
+      {bannerVisible && (
+        <div ref={bannerRef} className="fixed top-0 left-0 right-0 z-[60] bg-slate-900 py-2.5 px-4">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+            {/* Left */}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs font-medium text-blue-400">Private Beta</span>
+              <span className="text-sm text-slate-300 hidden sm:inline">LytheraHub is currently in private beta.</span>
+            </div>
+            {/* Center */}
+            <div className="flex items-center">
+              {bannerSubmitted ? (
+                <span className="text-sm font-medium text-green-400">You&apos;re on the list!</span>
+              ) : (
+                <form onSubmit={handleWaitlistSubmit} className="flex items-center">
+                  <input
+                    type="email"
+                    value={bannerEmail}
+                    onChange={(e) => setBannerEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-1.5 w-56 outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg ml-2 whitespace-nowrap"
+                  >
+                    Join Waitlist
+                  </button>
+                </form>
+              )}
+            </div>
+            {/* Right */}
+            <button onClick={dismissBanner} className="text-slate-400 hover:text-white shrink-0" aria-label="Dismiss banner">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ============================================================ */}
       {/*  STICKY NAVIGATION                                           */}
       {/* ============================================================ */}
-      <nav className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md">
+      <nav className="sticky z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md" style={{ top: bannerVisible ? bannerHeight : 0 }}>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center">
             <img src="/logo-full.png" className="h-12" alt="LytheraHub" />

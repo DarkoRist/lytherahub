@@ -1,16 +1,12 @@
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useEffect } from 'react'
 import {
   Bell,
   AlertTriangle,
   Info,
-  AlertCircle,
   CheckCircle2,
   X,
   Eye,
-  RefreshCw,
   ShieldAlert,
-  Inbox,
 } from 'lucide-react'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
@@ -94,55 +90,38 @@ function AlertsSkeleton() {
 }
 
 function AlertsPanel() {
-  const queryClient = useQueryClient()
-  const [localAlerts, setLocalAlerts] = useState(null)
+  const [alerts, setAlerts] = useState(DEMO_ALERTS)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const {
-    data: alertsData,
-    isLoading,
-    isError,
-    refetch,
-  } = useQuery({
-    queryKey: ['alerts', { limit: 5 }],
-    queryFn: async () => {
-      const { data } = await api.get('/alerts', { params: { limit: 5 } })
-      return data
-    },
-    staleTime: 60 * 1000,
-    retry: 1,
-    placeholderData: DEMO_ALERTS,
-  })
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        const { data } = await api.get('/alerts', { params: { limit: 5 } })
+        if (cancelled) return
+        const items = Array.isArray(data) ? data : data?.alerts || []
+        if (items.length > 0) setAlerts(items)
+      } catch {
+        // keep DEMO_ALERTS
+      } finally {
+        if (!cancelled) setIsLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [])
 
-  const markReadMutation = useMutation({
-    mutationFn: async (alertId) => {
-      await api.patch(`/alerts/${alertId}/read`)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['alerts'] })
-      toast.success('Alert marked as read')
-    },
-    onError: (_err, alertId) => {
-      setLocalAlerts((prev) => (prev || DEMO_ALERTS).map((a) => (a.id === alertId ? { ...a, read: true } : a)))
-      toast.success('Alert marked as read')
-    },
-  })
+  const handleRead = async (alertId) => {
+    setAlerts((prev) => prev.map((a) => (a.id === alertId ? { ...a, read: true } : a)))
+    toast.success('Alert marked as read')
+    try { await api.patch(`/alerts/${alertId}/read`) } catch { /* demo */ }
+  }
 
-  const dismissMutation = useMutation({
-    mutationFn: async (alertId) => {
-      await api.delete(`/alerts/${alertId}`)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['alerts'] })
-      toast.success('Alert dismissed')
-    },
-    onError: (_err, alertId) => {
-      setLocalAlerts((prev) => (prev || DEMO_ALERTS).filter((a) => a.id !== alertId))
-      toast.success('Alert dismissed')
-    },
-  })
-
-  const rawAlerts = localAlerts || (Array.isArray(alertsData) ? alertsData : alertsData?.alerts || [])
-  const alerts = rawAlerts.length > 0 ? rawAlerts : DEMO_ALERTS
+  const handleDismiss = async (alertId) => {
+    setAlerts((prev) => prev.filter((a) => a.id !== alertId))
+    toast.success('Alert dismissed')
+    try { await api.delete(`/alerts/${alertId}`) } catch { /* demo */ }
+  }
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
@@ -159,15 +138,6 @@ function AlertsPanel() {
             </span>
           )}
         </div>
-        {isError && (
-          <button
-            onClick={() => refetch()}
-            className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-          >
-            <RefreshCw className="h-3 w-3" />
-            Retry
-          </button>
-        )}
       </div>
 
       {/* Content */}
@@ -230,8 +200,7 @@ function AlertsPanel() {
                         <div className="flex items-center gap-1">
                           {!alert.read && (
                             <button
-                              onClick={() => markReadMutation.mutate(alert.id)}
-                              disabled={markReadMutation.isPending}
+                              onClick={() => handleRead(alert.id)}
                               className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-500 hover:bg-white/60 hover:text-slate-700 transition-colors dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-slate-200"
                               title="Mark as read"
                             >
@@ -240,8 +209,7 @@ function AlertsPanel() {
                             </button>
                           )}
                           <button
-                            onClick={() => dismissMutation.mutate(alert.id)}
-                            disabled={dismissMutation.isPending}
+                            onClick={() => handleDismiss(alert.id)}
                             className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-500 hover:bg-white/60 hover:text-slate-700 transition-colors dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-slate-200"
                             title="Dismiss"
                           >

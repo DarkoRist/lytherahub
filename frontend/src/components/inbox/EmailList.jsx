@@ -22,7 +22,7 @@ function SkeletonCard() {
   )
 }
 
-export default function EmailList({ emails = [], selectedId, onSelect, loading }) {
+export default function EmailList({ emails = [], selectedId, onSelect, loading, taskBadges, followUpFlags }) {
   if (loading) {
     return (
       <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -57,6 +57,8 @@ export default function EmailList({ emails = [], selectedId, onSelect, loading }
           email={email}
           selected={email.id === selectedId}
           onSelect={onSelect}
+          hasTask={taskBadges?.has(email.id)}
+          followUpDate={followUpFlags?.[email.id] || null}
         />
       ))}
     </div>

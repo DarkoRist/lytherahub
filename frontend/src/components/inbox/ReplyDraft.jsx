@@ -20,22 +20,34 @@ function extractFirstNameFromAddr(addr) {
   return parts[0].charAt(0).toUpperCase() + parts[0].slice(1)
 }
 
-// Generate a unique demo reply based on the email's actual subject and sender
+// Generate a contextual demo reply based on the email's actual subject, sender, and category
 function buildDemoReply(tone, email) {
   const senderName = email?.sender_name || email?.from_name || null
   const firstName = senderName
     ? senderName.split(' ')[0]
     : extractFirstNameFromAddr(email?.from_addr || email?.from || '')
   const subject = email?.subject || 'your message'
+  const isUrgent = email?.category === 'urgent'
+  const isInvoice = email?.category === 'invoice'
+
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const tomorrowStr = tomorrow.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+
+  const contextLine = isUrgent
+    ? 'I understand the urgency of this matter and am making it my top priority.'
+    : isInvoice
+      ? 'I have reviewed the invoice details and will process this promptly.'
+      : 'I have reviewed your message and will give it the attention it deserves.'
 
   if (tone === 'professional') {
-    return `Dear ${senderName || firstName},\n\nThank you for your email regarding "${subject}". I have reviewed the details you shared and would like to confirm that we are aligned on the next steps.\n\nI will have the requested information prepared and sent over by end of business tomorrow. Please do not hesitate to reach out if you need anything further in the meantime.\n\nBest regards,\nDarko`
+    return `Dear ${senderName || firstName},\n\nThank you for reaching out regarding "${subject}". ${contextLine}\n\nI will follow up with a comprehensive response by end of business on ${tomorrowStr}. Please do not hesitate to reach out if you need anything in the meantime.\n\nBest regards,\nDarko\nLytheraHub`
   }
   if (tone === 'friendly') {
-    return `Hi ${firstName}!\n\nThanks so much for reaching out about "${subject}"! I really appreciate you taking the time to share this.\n\nI'll get everything sorted on my end and circle back with you soon. Let me know if there's anything else I can help with!\n\nCheers,\nDarko`
+    return `Hey ${firstName}!\n\nThanks for the message about "${subject}" — got it!\n\n${isUrgent ? "I'll make this a priority and get back to you ASAP." : "Let me look into this and get back to you shortly. Shouldn't take long!"}\n\nTalk soon,\nDarko`
   }
   // brief
-  return `Hi ${firstName},\n\nNoted, thank you — re: "${subject}". I'll follow up by tomorrow.\n\nBest,\nDarko`
+  return `Hi ${firstName},\n\nRe: ${subject}\n\n${isUrgent ? 'On it — will update you within the hour.' : isInvoice ? 'Confirmed. Will process and respond today.' : 'Noted. Will respond by EOD.'}\n\nDarko`
 }
 
 export default function ReplyDraft({ email, onSend }) {

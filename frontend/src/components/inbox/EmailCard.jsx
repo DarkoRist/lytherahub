@@ -1,4 +1,4 @@
-import { Star, MessageCircle } from 'lucide-react'
+import { Star, MessageCircle, Flag, ClipboardList } from 'lucide-react'
 import { classNames, getInitials, truncate } from '../../utils/helpers'
 import { formatRelativeTime } from '../../utils/formatters'
 
@@ -69,7 +69,7 @@ function getAvatarColor(name) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
 }
 
-export default function EmailCard({ email, selected, onSelect }) {
+export default function EmailCard({ email, selected, onSelect, hasTask, followUpDate }) {
   const style = getCategoryStyle(email.category)
   const isUnread = !email.is_read
 
@@ -160,8 +160,39 @@ export default function EmailCard({ email, selected, onSelect }) {
 
             <div className="flex-1" />
 
+            {/* Task badge */}
+            {hasTask && (
+              <span
+                className="flex items-center gap-0.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                title="Task created"
+              >
+                <ClipboardList className="h-3 w-3" />
+                Task
+              </span>
+            )}
+
+            {/* Follow-up flag */}
+            {followUpDate && (
+              <span
+                className="flex items-center gap-0.5 text-[10px] font-medium text-orange-500 dark:text-orange-400"
+                title={`Follow up: ${followUpDate.toLocaleDateString('en-GB')}`}
+              >
+                <Flag className="h-3 w-3 fill-orange-400" />
+              </span>
+            )}
+
+            {/* Snooze badge */}
+            {email.snoozedUntil && (
+              <span
+                className="flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                title={`Snoozed until ${new Date(email.snoozedUntil).toLocaleString('en-GB')}`}
+              >
+                ⏰ Snoozed
+              </span>
+            )}
+
             {/* Needs reply indicator */}
-            {email.needs_reply && (
+            {email.needs_reply && !hasTask && (
               <span
                 className="flex items-center gap-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400"
                 title="Needs reply"

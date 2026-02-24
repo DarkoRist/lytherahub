@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 import api from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
-import toast from 'react-hot-toast'
 
 const actionIcons = {
   email: Mail,
@@ -24,6 +23,16 @@ const actionIcons = {
   follow_up: Send,
   review: CheckCircle2,
   deadline: Clock,
+}
+
+function getActionRoute(text = '') {
+  const t = text.toLowerCase()
+  if (t.includes('email') || t.includes('inbox') || t.includes('reply') || t.includes('urgent')) return '/inbox'
+  if (t.includes('invoice') || t.includes('overdue') || t.includes('payment') || t.includes('reminder')) return '/invoices'
+  if (t.includes('meeting') || t.includes('calendar') || t.includes('schedule')) return '/calendar'
+  if (t.includes('client') || t.includes('lead') || t.includes('follow')) return '/clients'
+  if (t.includes('task')) return '/tasks'
+  return '/dashboard'
 }
 
 function getGreeting() {
@@ -82,7 +91,7 @@ export default function MorningBriefing() {
   })
 
   const handleAction = (action) => {
-    const routes = {
+    const typeRoutes = {
       email: '/inbox',
       meeting: '/calendar',
       invoice: '/invoices',
@@ -90,9 +99,11 @@ export default function MorningBriefing() {
       review: '/tasks',
       deadline: '/tasks',
     }
-    const route = routes[action.type] || '/dashboard'
-    navigate(route)
-    toast.success(`Navigating to ${action.label || action.type}`)
+    const route =
+      typeRoutes[action.type] ||
+      action.link ||
+      getActionRoute(action.title || action.text || action.description || action.label || '')
+    if (route) navigate(route)
   }
 
   if (isLoading) return <SkeletonLoader />

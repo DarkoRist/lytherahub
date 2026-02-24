@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useMemo, useEffect, useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
   Search,
   Sparkles,
@@ -11,6 +11,13 @@ import {
   AlertCircle,
   RefreshCw,
   CheckSquare,
+  Clock,
+  Flag,
+  Send,
+  Inbox as InboxIcon,
+  X,
+  CalendarDays,
+  Loader2,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../api/client'
@@ -191,7 +198,7 @@ const DEMO_EMAILS = [
     to: 'me@lytherahub.dev',
     subject: 'Daily Digest: Top Products - Feb 12',
     snippet:
-      'Today\'s top launches: An AI meeting assistant, a new project management tool, and a design system generator.',
+      "Today's top launches: An AI meeting assistant, a new project management tool, and a design system generator.",
     ai_summary:
       'Product Hunt digest: Top launches include AI meeting assistant, PM tool, and design system generator.',
     body: 'Product Hunt Daily Digest - February 12, 2026\n\n#1 MeetingMind AI\nAI-powered meeting assistant that takes notes, creates action items...\n\n#2 ProjectFlow\nNext-gen project management with AI timeline predictions...\n\n#3 DesignKit Pro\nGenerate complete design systems from a single brand guideline...\n\nSee all launches at producthunt.com',
@@ -248,17 +255,45 @@ const CATEGORY_BADGE = {
 }
 
 // ---------------------------------------------------------------------------
+// Snooze + follow-up options
+// ---------------------------------------------------------------------------
+const SNOOZE_OPTIONS = [
+  { label: 'Later today (3 hours)', hours: 3 },
+  { label: 'Tomorrow morning', hours: 20 },
+  { label: 'Next week', hours: 168 },
+]
+
+const FOLLOW_UP_OPTIONS = [
+  { label: '1 day — if no reply by tomorrow', days: 1 },
+  { label: '3 days — follow up Friday', days: 3 },
+  { label: '1 week — follow up next week', days: 7 },
+]
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 export default function Inbox() {
-  const queryClient = useQueryClient()
-
   const [category, setCategory] = useState('all')
   const [selectedEmail, setSelectedEmail] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [page, setPage] = useState(1)
-  // Mobile detail view state
   const [showDetail, setShowDetail] = useState(false)
+
+  // Local email state for optimistic updates
+  const [localEmails, setLocalEmails] = useState(null)
+
+  // Folder state
+  const [activeFolder, setActiveFolder] = useState('inbox')
+  const [snoozedEmails, setSnoozedEmails] = useState([])
+  const [archivedEmails, setArchivedEmails] = useState([])
+
+  // Smart feature state
+  const [followUpFlags, setFollowUpFlags] = useState({})
+  const [taskBadges, setTaskBadges] = useState(new Set())
+  const [showTaskModal, setShowTaskModal] = useState(false)
+  const [taskForm, setTaskForm] = useState(null)
+  const [showSnoozeFor, setShowSnoozeFor] = useState(null)
+  const [showFollowUpFor, setShowFollowUpFor] = useState(null)
 
   // ---- Fetch emails --------------------------------------------------
   const {
@@ -275,13 +310,24 @@ export default function Inbox() {
         const res = await api.get('/emails', { params })
         return res.data
       } catch {
-        // Fallback to demo data
         return null
       }
     },
     staleTime: 30_000,
     retry: false,
   })
+
+  // Hydrate localEmails from query data when first available
+  useEffect(() => {
+    if (localEmails === null && emailsData !== null) {
+      const raw =
+        emailsData?.items ||
+        emailsData?.emails ||
+        (Array.isArray(emailsData) ? emailsData : null) ||
+        DEMO_EMAILS
+      setLocalEmails(raw)
+    }
+  }, [emailsData, localEmails])
 
   // ---- Fetch stats ---------------------------------------------------
   const { data: statsData } = useQuery({
@@ -298,57 +344,183 @@ export default function Inbox() {
     retry: false,
   })
 
-  // ---- Mutations -----------------------------------------------------
-  const markReadMutation = useMutation({
-    mutationFn: (id) => api.patch(`/emails/${id}/read`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['emails'] })
-      queryClient.invalidateQueries({ queryKey: ['email-stats'] })
-      toast.success('Marked as read')
-    },
-    onError: () => toast.success('Marked as read (demo)'),
-  })
+  // ---- Base emails (localEmails or DEMO_EMAILS fallback) -------------
+  const baseEmails = useMemo(() => {
+    if (localEmails !== null) return localEmails
+    const raw =
+      emailsData?.items ||
+      emailsData?.emails ||
+      (Array.isArray(emailsData) ? emailsData : null) ||
+      DEMO_EMAILS
+    return raw
+  }, [localEmails, emailsData])
 
-  const starMutation = useMutation({
-    mutationFn: (id) => api.patch(`/emails/${id}/star`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['emails'] }),
-    onError: () => toast.success('Star toggled (demo)'),
-  })
-
-  const archiveMutation = useMutation({
-    mutationFn: (id) => api.patch(`/emails/${id}/archive`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['emails'] })
-      setSelectedEmail(null)
-      setShowDetail(false)
-      toast.success('Email archived')
-    },
-    onError: () => toast.success('Email archived (demo)'),
-  })
-
-  // ---- Derived data ---------------------------------------------------
-  const emails = useMemo(() => {
-    const raw = emailsData?.items || emailsData?.emails || (Array.isArray(emailsData) ? emailsData : null) || DEMO_EMAILS
-    if (!searchQuery.trim()) return raw
+  // ---- Search filter (Fix 2A: correct field names) -------------------
+  const searchFiltered = useMemo(() => {
+    if (!searchQuery.trim()) return baseEmails
     const q = searchQuery.toLowerCase()
-    return raw.filter(
+    return baseEmails.filter(
       (e) =>
-        e.subject?.toLowerCase().includes(q) ||
-        e.sender_name?.toLowerCase().includes(q) ||
-        e.ai_summary?.toLowerCase().includes(q) ||
-        e.from?.toLowerCase().includes(q)
+        (e.from_addr || e.from || '').toLowerCase().includes(q) ||
+        (e.sender_name || '').toLowerCase().includes(q) ||
+        (e.subject || '').toLowerCase().includes(q) ||
+        (e.snippet || '').toLowerCase().includes(q) ||
+        (e.body_preview || '').toLowerCase().includes(q) ||
+        (e.ai_summary || '').toLowerCase().includes(q) ||
+        (e.category || '').toLowerCase().includes(q)
     )
-  }, [emailsData, searchQuery])
+  }, [baseEmails, searchQuery])
 
-  // Filter demo data by category client-side when using fallback
+  // ---- Folder filter -------------------------------------------------
   const filteredEmails = useMemo(() => {
-    if (emailsData && emailsData !== null && !Array.isArray(emailsData)) return emails
-    if (category === 'all') return emails
-    return emails.filter((e) => e.category === category)
-  }, [emails, category, emailsData])
+    switch (activeFolder) {
+      case 'starred':
+        return searchFiltered.filter((e) => e.is_starred)
+      case 'snoozed':
+        return snoozedEmails
+      case 'sent':
+        return []
+      case 'archive':
+        return archivedEmails
+      default: // inbox
+        if (category !== 'all') return searchFiltered.filter((e) => e.category === category)
+        return searchFiltered
+    }
+  }, [searchFiltered, activeFolder, category, snoozedEmails, archivedEmails])
 
   const stats = statsData || DEMO_STATS
 
+  // ---- Folder definitions --------------------------------------------
+  const folders = [
+    {
+      id: 'inbox',
+      label: 'Inbox',
+      icon: InboxIcon,
+      count: baseEmails.filter((e) => !e.archived).length,
+    },
+    {
+      id: 'starred',
+      label: 'Starred',
+      icon: Star,
+      count: baseEmails.filter((e) => e.is_starred).length,
+    },
+    {
+      id: 'snoozed',
+      label: 'Snoozed',
+      icon: Clock,
+      count: snoozedEmails.length,
+    },
+    {
+      id: 'sent',
+      label: 'Sent',
+      icon: Send,
+      count: 0,
+    },
+    {
+      id: 'archive',
+      label: 'Archive',
+      icon: Archive,
+      count: archivedEmails.length,
+    },
+  ]
+
+  // ---- Optimistic email actions (Fix 2B) -----------------------------
+  const handleMarkRead = (emailId) => {
+    setLocalEmails((prev) =>
+      (prev || DEMO_EMAILS).map((e) => (e.id === emailId ? { ...e, is_read: true } : e))
+    )
+    if (selectedEmail?.id === emailId)
+      setSelectedEmail((prev) => ({ ...prev, is_read: true }))
+    toast.success('Marked as read')
+    api.patch(`/emails/${emailId}/read`).catch(() => {})
+  }
+
+  const handleStar = (emailId) => {
+    const current = (localEmails || DEMO_EMAILS).find((e) => e.id === emailId)
+    const nextStarred = !current?.is_starred
+    setLocalEmails((prev) =>
+      (prev || DEMO_EMAILS).map((e) =>
+        e.id === emailId ? { ...e, is_starred: nextStarred } : e
+      )
+    )
+    if (selectedEmail?.id === emailId)
+      setSelectedEmail((prev) => ({ ...prev, is_starred: nextStarred }))
+    toast.success(nextStarred ? 'Added to starred' : 'Removed from starred')
+    api.patch(`/emails/${emailId}/star`).catch(() => {})
+  }
+
+  const handleArchive = (emailId) => {
+    const email = (localEmails || DEMO_EMAILS).find((e) => e.id === emailId)
+    if (email) setArchivedEmails((prev) => [...prev, email])
+    setLocalEmails((prev) => (prev || DEMO_EMAILS).filter((e) => e.id !== emailId))
+    if (selectedEmail?.id === emailId) {
+      setSelectedEmail(null)
+      setShowDetail(false)
+    }
+    toast.success('Email archived')
+    api.patch(`/emails/${emailId}/archive`).catch(() => {})
+  }
+
+  // ---- Snooze handler ------------------------------------------------
+  const handleSnooze = (emailId, hours) => {
+    const email = (localEmails || DEMO_EMAILS).find((e) => e.id === emailId)
+    if (!email) return
+    const wakeTime = new Date()
+    wakeTime.setHours(wakeTime.getHours() + hours)
+    setSnoozedEmails((prev) => [...prev, { ...email, snoozedUntil: wakeTime }])
+    setLocalEmails((prev) => (prev || DEMO_EMAILS).filter((e) => e.id !== emailId))
+    if (selectedEmail?.id === emailId) {
+      setSelectedEmail(null)
+      setShowDetail(false)
+    }
+    setShowSnoozeFor(null)
+    toast.success(
+      `Snoozed until ${wakeTime.toLocaleString('en-GB', {
+        weekday: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`
+    )
+  }
+
+  // ---- Create Task handler -------------------------------------------
+  const openTaskModal = (email) => {
+    setTaskForm({
+      emailId: email.id,
+      title: `Follow up: ${email.subject}`,
+      dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+      priority: email.category === 'urgent' ? 'high' : 'medium',
+    })
+    setShowTaskModal(true)
+  }
+
+  const handleCreateTask = async (form) => {
+    const { emailId, ...taskData } = form
+    toast.success(`Task created: ${taskData.title}`)
+    setTaskBadges((prev) => new Set([...prev, emailId]))
+    setShowTaskModal(false)
+    setTaskForm(null)
+    try {
+      await api.post('/tasks', taskData)
+    } catch { /* demo */ }
+  }
+
+  // ---- Follow-up handler --------------------------------------------
+  const handleFollowUp = (emailId, days) => {
+    const date = new Date()
+    date.setDate(date.getDate() + days)
+    setFollowUpFlags((prev) => ({ ...prev, [emailId]: date }))
+    setShowFollowUpFor(null)
+    toast.success(
+      `Follow-up reminder set for ${date.toLocaleDateString('en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'short',
+      })}`
+    )
+  }
+
+  // ---- Navigation helpers -------------------------------------------
   function handleSelectEmail(email) {
     setSelectedEmail(email)
     setShowDetail(true)
@@ -393,12 +565,14 @@ export default function Inbox() {
           </div>
         </div>
 
-        {/* Category filter */}
-        <CategoryFilter
-          activeCategory={category}
-          onChange={handleCategoryChange}
-          stats={stats}
-        />
+        {/* Category filter — only shown in inbox folder */}
+        {activeFolder === 'inbox' && (
+          <CategoryFilter
+            activeCategory={category}
+            onChange={handleCategoryChange}
+            stats={stats}
+          />
+        )}
       </div>
 
       {/* Error state */}
@@ -423,25 +597,73 @@ export default function Inbox() {
         </div>
       )}
 
-      {/* Main split pane */}
+      {/* Main split pane — 3 columns: folders + list + detail */}
       {(!isError || filteredEmails.length > 0) && (
         <div className="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-          {/* ---- Left: Email list ---- */}
+
+          {/* ---- Folder sidebar ---- */}
+          <div className="hidden w-36 shrink-0 border-r border-slate-100 py-4 px-2 dark:border-slate-800 sm:block">
+            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              Folders
+            </p>
+            <div className="space-y-0.5">
+              {folders.map((folder) => {
+                const Icon = folder.icon
+                return (
+                  <button
+                    key={folder.id}
+                    onClick={() => {
+                      setActiveFolder(folder.id)
+                      setSelectedEmail(null)
+                      setShowDetail(false)
+                    }}
+                    className={classNames(
+                      'flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors',
+                      activeFolder === folder.id
+                        ? 'bg-blue-50 font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                        : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800'
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="flex-1 truncate">{folder.label}</span>
+                    {folder.count > 0 && (
+                      <span className="text-[10px] font-medium text-slate-400">
+                        {folder.count}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* ---- Email list ---- */}
           <div
             className={classNames(
-              'w-full shrink-0 overflow-y-auto border-r border-slate-100 dark:border-slate-800 md:w-96 lg:w-[420px]',
+              'w-full shrink-0 overflow-y-auto border-r border-slate-100 dark:border-slate-800 md:w-80 lg:w-[380px]',
               showDetail ? 'hidden md:block' : 'block'
             )}
           >
-            <EmailList
-              emails={filteredEmails}
-              selectedId={selectedEmail?.id}
-              onSelect={handleSelectEmail}
-              loading={isLoading}
-            />
+            {activeFolder === 'sent' ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+                <Send className="h-10 w-10 text-slate-300 dark:text-slate-600" />
+                <p className="mt-3 text-sm font-medium text-slate-500 dark:text-slate-400">
+                  Sent emails appear here when Gmail is connected.
+                </p>
+              </div>
+            ) : (
+              <EmailList
+                emails={filteredEmails}
+                selectedId={selectedEmail?.id}
+                onSelect={handleSelectEmail}
+                loading={isLoading}
+                taskBadges={taskBadges}
+                followUpFlags={followUpFlags}
+              />
+            )}
 
             {/* Pagination */}
-            {filteredEmails.length > 0 && (
+            {filteredEmails.length > 0 && activeFolder === 'inbox' && (
               <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3 dark:border-slate-800">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -464,7 +686,7 @@ export default function Inbox() {
             )}
           </div>
 
-          {/* ---- Right: Email detail ---- */}
+          {/* ---- Email detail ---- */}
           <div
             className={classNames(
               'min-w-0 flex-1 overflow-y-auto',
@@ -476,9 +698,17 @@ export default function Inbox() {
                 key={selectedEmail.id}
                 email={selectedEmail}
                 onBack={handleBack}
-                onMarkRead={() => markReadMutation.mutate(selectedEmail.id)}
-                onStar={() => starMutation.mutate(selectedEmail.id)}
-                onArchive={() => archiveMutation.mutate(selectedEmail.id)}
+                onMarkRead={() => handleMarkRead(selectedEmail.id)}
+                onStar={() => handleStar(selectedEmail.id)}
+                onArchive={() => handleArchive(selectedEmail.id)}
+                onSnooze={(hours) => handleSnooze(selectedEmail.id, hours)}
+                onCreateTask={() => openTaskModal(selectedEmail)}
+                onFollowUp={(days) => handleFollowUp(selectedEmail.id, days)}
+                showSnoozeFor={showSnoozeFor}
+                setShowSnoozeFor={setShowSnoozeFor}
+                showFollowUpFor={showFollowUpFor}
+                setShowFollowUpFor={setShowFollowUpFor}
+                hasFollowUp={!!followUpFlags[selectedEmail.id]}
               />
             ) : (
               <div className="flex h-full flex-col items-center justify-center py-20 text-center">
@@ -496,6 +726,90 @@ export default function Inbox() {
           </div>
         </div>
       )}
+
+      {/* Task Creation Modal */}
+      {showTaskModal && taskForm && (
+        <TaskModal
+          form={taskForm}
+          onChange={setTaskForm}
+          onSubmit={handleCreateTask}
+          onClose={() => { setShowTaskModal(false); setTaskForm(null) }}
+        />
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// TaskModal
+// ---------------------------------------------------------------------------
+function TaskModal({ form, onChange, onSubmit, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md rounded-xl bg-white shadow-2xl dark:bg-slate-800">
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-700">
+          <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+            Create Task from Email
+          </h3>
+          <button onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="space-y-4 p-5">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+              Title
+            </label>
+            <input
+              type="text"
+              value={form.title}
+              onChange={(e) => onChange((f) => ({ ...f, title: e.target.value }))}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                Due Date
+              </label>
+              <input
+                type="date"
+                value={form.dueDate}
+                onChange={(e) => onChange((f) => ({ ...f, dueDate: e.target.value }))}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                Priority
+              </label>
+              <select
+                value={form.priority}
+                onChange={(e) => onChange((f) => ({ ...f, priority: e.target.value }))}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+              >
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-1">
+            <button
+              onClick={onClose}
+              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => onSubmit(form)}
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            >
+              Create Task
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -517,10 +831,25 @@ function extractNameFromAddr(addr) {
     .join(' ')
 }
 
-function EmailDetail({ email, onBack, onMarkRead, onStar, onArchive }) {
+function EmailDetail({
+  email,
+  onBack,
+  onMarkRead,
+  onStar,
+  onArchive,
+  onSnooze,
+  onCreateTask,
+  onFollowUp,
+  showSnoozeFor,
+  setShowSnoozeFor,
+  showFollowUpFor,
+  setShowFollowUpFor,
+  hasFollowUp,
+}) {
   const badgeClass = CATEGORY_BADGE[email.category] || CATEGORY_BADGE.other
+  const snoozeRef = useRef(null)
+  const followUpRef = useRef(null)
 
-  // Resolve sender display name from all possible fields (API uses from_addr, demo uses sender_name)
   const senderDisplay =
     email.sender_name ||
     email.from_name ||
@@ -530,9 +859,19 @@ function EmailDetail({ email, onBack, onMarkRead, onStar, onArchive }) {
     extractNameFromAddr(email.from_addr || email.from || '') ||
     ''
 
+  // Close dropdowns on outside click
+  useEffect(() => {
+    function handleClick(e) {
+      if (snoozeRef.current && !snoozeRef.current.contains(e.target)) setShowSnoozeFor(null)
+      if (followUpRef.current && !followUpRef.current.contains(e.target)) setShowFollowUpFor(null)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [setShowSnoozeFor, setShowFollowUpFor])
+
   return (
     <div className="flex h-full flex-col">
-      {/* Mobile back button + actions */}
+      {/* Action bar */}
       <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800">
         <button
           onClick={onBack}
@@ -543,6 +882,7 @@ function EmailDetail({ email, onBack, onMarkRead, onStar, onArchive }) {
         </button>
 
         <div className="flex items-center gap-1">
+          {/* Mark as read */}
           <button
             onClick={onMarkRead}
             className="rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
@@ -550,6 +890,8 @@ function EmailDetail({ email, onBack, onMarkRead, onStar, onArchive }) {
           >
             <CheckCheck className="h-4 w-4" />
           </button>
+
+          {/* Star */}
           <button
             onClick={onStar}
             className="rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-amber-500 dark:text-slate-400 dark:hover:bg-slate-800"
@@ -562,6 +904,8 @@ function EmailDetail({ email, onBack, onMarkRead, onStar, onArchive }) {
               )}
             />
           </button>
+
+          {/* Archive */}
           <button
             onClick={onArchive}
             className="rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
@@ -569,6 +913,74 @@ function EmailDetail({ email, onBack, onMarkRead, onStar, onArchive }) {
           >
             <Archive className="h-4 w-4" />
           </button>
+
+          {/* Snooze */}
+          <div className="relative" ref={snoozeRef}>
+            <button
+              onClick={() => setShowSnoozeFor(showSnoozeFor === email.id ? null : email.id)}
+              className="rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              title="Snooze"
+            >
+              <Clock className="h-4 w-4" />
+            </button>
+            {showSnoozeFor === email.id && (
+              <div className="absolute right-0 top-9 z-20 w-52 rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                <p className="border-b border-slate-100 px-3 py-2 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                  Snooze until...
+                </p>
+                {SNOOZE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.hours}
+                    onClick={() => onSnooze(opt.hours)}
+                    className="flex w-full items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700"
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Create Task */}
+          <button
+            onClick={onCreateTask}
+            className="rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            title="Create task"
+          >
+            <CheckSquare className="h-4 w-4" />
+          </button>
+
+          {/* Follow-up flag */}
+          <div className="relative" ref={followUpRef}>
+            <button
+              onClick={() => setShowFollowUpFor(showFollowUpFor === email.id ? null : email.id)}
+              className={classNames(
+                'rounded-md p-2 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800',
+                hasFollowUp
+                  ? 'text-orange-500'
+                  : 'text-slate-500 dark:text-slate-400 dark:hover:text-slate-200'
+              )}
+              title="Set follow-up reminder"
+            >
+              <Flag className={classNames('h-4 w-4', hasFollowUp ? 'fill-orange-400' : '')} />
+            </button>
+            {showFollowUpFor === email.id && (
+              <div className="absolute right-0 top-9 z-20 w-56 rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                <p className="border-b border-slate-100 px-3 py-2 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                  Follow-up reminder
+                </p>
+                {FOLLOW_UP_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.days}
+                    onClick={() => onFollowUp(opt.days)}
+                    className="flex w-full items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700"
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

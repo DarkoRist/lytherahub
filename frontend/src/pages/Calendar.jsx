@@ -1,5 +1,4 @@
-import { useState, useMemo } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useMemo, useEffect } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
@@ -13,7 +12,6 @@ import {
   Sparkles,
   CalendarDays,
   Loader2,
-  Search,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../api/client'
@@ -21,7 +19,7 @@ import CalendarGrid from '../components/calendar/CalendarGrid'
 import MeetingPrep from '../components/calendar/MeetingPrep'
 
 // ---------------------------------------------------------------------------
-// Demo fallback data
+// Demo fallback data — built ONCE outside the component (stable reference)
 // ---------------------------------------------------------------------------
 
 function generatePrepBrief(template, attendees) {
@@ -88,33 +86,31 @@ function generateDemoEvents() {
     { email: 'thomas@startup.de', name: 'Thomas Müller' },
   ]
 
-  // Generate events for the next 14 days
+  // Generate events for next 14 days, 3 days back — deterministically
   for (let dayOffset = -3; dayOffset < 14; dayOffset++) {
     const day = new Date(today)
     day.setDate(today.getDate() + dayOffset)
-
-    // Skip some weekend days
     const dow = day.getDay()
-    if ((dow === 0 || dow === 6) && Math.random() > 0.3) continue
+    // skip most weekends (use day-based seed instead of random)
+    if ((dow === 0 || dow === 6) && dayOffset % 3 !== 0) continue
 
-    // 1-4 events per day
-    const count = Math.floor(Math.random() * 3) + 1
+    const count = (Math.abs(dayOffset) % 3) + 1
     const usedHours = new Set()
 
     for (let i = 0; i < count; i++) {
-      const t = templates[Math.floor(Math.random() * templates.length)]
-      let startHour = 8 + Math.floor(Math.random() * 9) // 8am - 5pm
-      while (usedHours.has(startHour)) startHour = 8 + Math.floor(Math.random() * 9)
+      const tIdx = Math.abs(dayOffset * 3 + i) % templates.length
+      const t = templates[tIdx]
+      let startHour = 8 + ((dayOffset * 2 + i * 3) % 9)
+      while (usedHours.has(startHour)) startHour = (startHour + 1) % 9 + 8
       usedHours.add(startHour)
+      const startMin = i % 2 === 0 ? 30 : 0
 
       const start = new Date(day)
-      start.setHours(startHour, Math.random() > 0.5 ? 30 : 0, 0, 0)
+      start.setHours(startHour, startMin, 0, 0)
       const end = new Date(start.getTime() + t.duration * 60000)
 
-      const numAttendees = t.is_meeting ? Math.floor(Math.random() * 3) + 1 : 0
-      const attendees = []
-      const shuffled = [...attendeePool].sort(() => Math.random() - 0.5)
-      for (let a = 0; a < numAttendees; a++) attendees.push(shuffled[a])
+      const numAttendees = t.is_meeting ? (i % 3) + 1 : 0
+      const attendees = attendeePool.slice(0, numAttendees)
 
       events.push({
         id: `demo-evt-${dayOffset}-${i}`,
@@ -135,6 +131,7 @@ function generateDemoEvents() {
   return events.sort((a, b) => new Date(a.start_time) - new Date(b.start_time))
 }
 
+// Built ONCE at module level — stable, never recreated on re-renders
 const DEMO_EVENTS = generateDemoEvents()
 
 // ---------------------------------------------------------------------------
@@ -157,7 +154,6 @@ function formatDateRange(date, view) {
     weekStart.setDate(weekStart.getDate() - (dow === 0 ? 6 : dow - 1))
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekStart.getDate() + 6)
-
     const startStr = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(weekStart)
     const endStr = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(weekEnd)
     return `${startStr} — ${endStr}`
@@ -172,9 +168,10 @@ function formatTime(dateStr) {
 
 function formatEventDate(dateStr) {
   return new Intl.DateTimeFormat('en-GB', {
-    weekday: 'short',
+    weekday: 'long',
     day: 'numeric',
-    month: 'short',
+    month: 'long',
+    year: 'numeric',
   }).format(new Date(dateStr))
 }
 
@@ -194,7 +191,6 @@ function getDateRangeParams(date, view) {
     sunday.setDate(monday.getDate() + 7)
     return { start: fmt(monday), end: fmt(sunday) }
   }
-  // month: include surrounding days for calendar grid
   const first = new Date(d.getFullYear(), d.getMonth(), 1)
   const last = new Date(d.getFullYear(), d.getMonth() + 1, 7)
   const startDate = new Date(first)
@@ -211,50 +207,85 @@ function fmt(d) {
 // ---------------------------------------------------------------------------
 
 export default function Calendar() {
-  const queryClient = useQueryClient()
   const [view, setView] = useState('week')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [addDefaults, setAddDefaults] = useState(null)
 
-  const dateRange = useMemo(() => getDateRangeParams(currentDate, view), [currentDate, view])
+  // Fix 3A: use useState + useEffect — events NEVER disappear on API failure
+  const [events, setEvents] = useState(DEMO_EVENTS)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
 
-  // Fetch events
-  const { data: events, isLoading } = useQuery({
-    queryKey: ['calendar-events', dateRange.start, dateRange.end],
-    queryFn: () =>
-      api.get('/calendar/events', { params: { start: dateRange.start, end: dateRange.end } }).then((r) => r.data),
-    placeholderData: DEMO_EVENTS,
-    staleTime: 30_000,
-  })
+  // Load events ONCE on mount — only update if API returns non-empty data
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      setIsLoading(true)
+      try {
+        const res = await api.get('/calendar/events', { params: { days_ahead: 30 } })
+        if (cancelled) return
+        const data = res.data
+        const items = Array.isArray(data) ? data : data?.items || []
+        if (items.length > 0) setEvents(items)
+        // Empty response → keep DEMO_EVENTS
+      } catch {
+        // Error → keep DEMO_EVENTS, do not call setEvents([])
+      } finally {
+        if (!cancelled) setIsLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, []) // empty deps — runs ONCE only
 
-  // Fetch today's schedule for sidebar
-  const { data: todayEvents } = useQuery({
-    queryKey: ['calendar-today'],
-    queryFn: () => api.get('/calendar/today').then((r) => r.data),
-    placeholderData: DEMO_EVENTS.filter((e) => {
+  // Today's events derived from events state
+  const todayEvents = useMemo(() => {
+    const today = new Date()
+    return events.filter((e) => {
       const d = new Date(e.start_time)
-      const today = new Date()
       return d.toDateString() === today.toDateString()
-    }),
-    staleTime: 60_000,
-  })
+    })
+  }, [events])
 
-  // Create event
-  const createEvent = useMutation({
-    mutationFn: (data) => api.post('/calendar/events', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
-      queryClient.invalidateQueries({ queryKey: ['calendar-today'] })
-      setShowAddModal(false)
-      toast.success('Event created')
-    },
-    onError: () => toast.error('Failed to create event'),
-  })
+  // Fix 3B: Create event with demo fallback that adds to local state
+  const handleCreateEvent = async (data) => {
+    setIsCreating(true)
+    let newEvent
+    try {
+      const res = await api.post('/calendar/events', data)
+      newEvent = res.data
+    } catch {
+      // Demo fallback: create local event
+      newEvent = {
+        id: 'new-' + Date.now(),
+        title: data.title,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        location: data.location || '',
+        description: data.description || '',
+        is_meeting: data.is_meeting ?? true,
+        attendees: data.attendees || [],
+        type: data.is_meeting ? 'meeting' : 'other',
+        prep_brief: null,
+        action_items: data.is_meeting ? ['Follow up on action items'] : null,
+      }
+    }
+    setEvents((prev) => [...prev, newEvent])
+    setShowAddModal(false)
+    toast.success('Event created')
+    setIsCreating(false)
+  }
 
-  // Navigate
-  const navigate = (direction) => {
+  const handleDeleteEvent = (eventId) => {
+    setEvents((prev) => prev.filter((e) => e.id !== eventId))
+    setSelectedEvent(null)
+    toast.success('Event deleted')
+  }
+
+  // Navigate calendar
+  const navigateCalendar = (direction) => {
     const d = new Date(currentDate)
     if (view === 'day') d.setDate(d.getDate() + direction)
     else if (view === 'week') d.setDate(d.getDate() + direction * 7)
@@ -303,13 +334,13 @@ export default function Calendar() {
               Today
             </button>
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigateCalendar(-1)}
               className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
-              onClick={() => navigate(1)}
+              onClick={() => navigateCalendar(1)}
               className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <ChevronRight className="h-5 w-5" />
@@ -358,7 +389,7 @@ export default function Calendar() {
             </div>
           ) : (
             <CalendarGrid
-              events={events || []}
+              events={events}
               view={view}
               currentDate={currentDate}
               onEventClick={setSelectedEvent}
@@ -374,10 +405,11 @@ export default function Calendar() {
           <EventDetailPanel
             event={selectedEvent}
             onClose={() => setSelectedEvent(null)}
+            onDelete={handleDeleteEvent}
           />
         ) : (
           <TodaySidebar
-            events={todayEvents || []}
+            events={todayEvents}
             nextMeeting={nextMeeting}
             countdown={nextMeetingCountdown}
             onEventClick={setSelectedEvent}
@@ -393,8 +425,8 @@ export default function Calendar() {
       {showAddModal && (
         <AddEventModal
           defaults={addDefaults}
-          isPending={createEvent.isPending}
-          onSubmit={(data) => createEvent.mutate(data)}
+          isPending={isCreating}
+          onSubmit={handleCreateEvent}
           onClose={() => setShowAddModal(false)}
         />
       )}
@@ -403,10 +435,23 @@ export default function Calendar() {
 }
 
 // ---------------------------------------------------------------------------
-// Event Detail Panel
+// Event Detail Panel — Fix 3C
 // ---------------------------------------------------------------------------
 
-function EventDetailPanel({ event, onClose }) {
+function EventDetailPanel({ event, onClose, onDelete }) {
+  const [generatingBrief, setGeneratingBrief] = useState(false)
+  const [localBrief, setLocalBrief] = useState(event.prep_brief || null)
+
+  const handleGenerateBrief = async () => {
+    setGeneratingBrief(true)
+    await new Promise((r) => setTimeout(r, 1500))
+    setLocalBrief(
+      `Background: ${event.title} — client relationship meeting.\n\nLast Interaction: Exchanged emails last week. Proposal reviewed and ready for discussion.\n\nOpen Invoices: Check billing dashboard for outstanding items.\n\nTalking Points:\n- Review agenda and objectives\n- Discuss key deliverables and timelines\n- Address any open questions or blockers\n- Align on next steps and follow-up actions`
+    )
+    setGeneratingBrief(false)
+    toast.success('Prep brief generated')
+  }
+
   return (
     <div className="flex h-full flex-col overflow-y-auto">
       {/* Header */}
@@ -424,7 +469,7 @@ function EventDetailPanel({ event, onClose }) {
         {/* Title & type badge */}
         <div>
           <div className="flex items-start justify-between gap-2">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white leading-tight">
               {event.title}
             </h2>
             <TypeBadge type={event.type || 'meeting'} />
@@ -434,7 +479,7 @@ function EventDetailPanel({ event, onClose }) {
           )}
         </div>
 
-        {/* Time */}
+        {/* Date + Time */}
         <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
           <Clock className="h-4 w-4 shrink-0 text-slate-400" />
           <span>
@@ -459,10 +504,10 @@ function EventDetailPanel({ event, onClose }) {
                 Attendees ({event.attendees.length})
               </span>
             </div>
-            <div className="space-y-1.5 pl-6">
+            <div className="flex flex-wrap gap-2 pl-6">
               {event.attendees.map((a, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">
+                <div key={i} className="flex items-center gap-1.5">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">
                     {(a.name || a.email || '?')[0].toUpperCase()}
                   </div>
                   <span className="text-sm text-slate-600 dark:text-slate-400">
@@ -474,7 +519,7 @@ function EventDetailPanel({ event, onClose }) {
           </div>
         )}
 
-        {/* Action items from previous meeting */}
+        {/* Action items */}
         {event.action_items?.length > 0 && (
           <div>
             <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
@@ -491,8 +536,58 @@ function EventDetailPanel({ event, onClose }) {
           </div>
         )}
 
-        {/* AI Meeting Prep */}
-        <MeetingPrep event={event} />
+        {/* AI Prep Brief */}
+        {localBrief ? (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800/40 dark:bg-blue-900/10">
+            <div className="mb-2 flex items-center gap-1.5">
+              <Sparkles className="h-4 w-4 text-blue-500" />
+              <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
+                AI Meeting Prep
+              </span>
+            </div>
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-blue-900 dark:text-blue-200">
+              {localBrief}
+            </p>
+          </div>
+        ) : event.is_meeting ? (
+          <button
+            onClick={handleGenerateBrief}
+            disabled={generatingBrief}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 disabled:opacity-60 dark:border-blue-800/40 dark:bg-blue-900/10 dark:text-blue-400 dark:hover:bg-blue-900/20"
+          >
+            {generatingBrief ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Generating prep brief...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                Generate Prep Brief
+              </>
+            )}
+          </button>
+        ) : null}
+
+        {/* MeetingPrep component */}
+        {!localBrief && <MeetingPrep event={event} />}
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-2 pt-1">
+          <button
+            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+          >
+            <Edit3 className="h-4 w-4" />
+            Edit
+          </button>
+          <button
+            onClick={() => onDelete(event.id)}
+            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </button>
+        </div>
       </div>
     </div>
   )

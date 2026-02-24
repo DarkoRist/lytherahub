@@ -132,6 +132,19 @@ const typeRoutes = {
   alert: '/dashboard',
 }
 
+function getActivityRoute(description = '', type = '') {
+  if (typeRoutes[type]) return typeRoutes[type]
+  const d = description.toLowerCase()
+  if (d.includes('email') || d.includes('replied') || d.includes('inbox') || d.includes('classified')) return '/inbox'
+  if (d.includes('inv-') || d.includes('invoice') || d.includes('payment') || d.includes('€')) return '/invoices'
+  if (d.includes('client') || d.includes('lead') || d.includes('pipeline') || d.includes('gmbh') || d.includes('ag')) return '/clients'
+  if (d.includes('meeting') || d.includes('calendar') || d.includes('scheduled') || d.includes('call') || d.includes('prep')) return '/calendar'
+  if (d.includes('task')) return '/tasks'
+  if (d.includes('report') || d.includes('weekly')) return '/reports'
+  if (d.includes('automation') || d.includes('workflow')) return '/automations'
+  return '/dashboard'
+}
+
 export default function ActivityFeed() {
   const navigate = useNavigate()
   const {
@@ -204,7 +217,7 @@ export default function ActivityFeed() {
               return (
                 <div
                   key={activity.id || index}
-                  onClick={() => navigate(typeRoutes[activity.type] || '/dashboard')}
+                  onClick={() => navigate(getActivityRoute(activity.description, activity.type))}
                   className={`flex cursor-pointer items-start gap-3 rounded-lg border-l-2 p-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 ${config.borderColor}`}
                 >
                   <div

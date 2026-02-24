@@ -11,7 +11,6 @@ import {
   Lightbulb,
 } from 'lucide-react'
 import api from '../../api/client'
-import toast from 'react-hot-toast'
 
 const ACTION_ROUTES = {
   'View Calendar': '/calendar',
@@ -21,6 +20,18 @@ const ACTION_ROUTES = {
   'View Revenue Report': '/reports',
   'Generate Full Report': '/reports',
   'Open Tasks': '/tasks',
+}
+
+function getButtonRoute(label = '') {
+  const l = label.toLowerCase()
+  if (l.includes('calendar') || l.includes('schedule')) return '/calendar'
+  if (l.includes('inbox') || l.includes('email') || l.includes('mail')) return '/inbox'
+  if (l.includes('invoice') || l.includes('payment') || l.includes('billing')) return '/invoices'
+  if (l.includes('client') || l.includes('pipeline') || l.includes('lead')) return '/clients'
+  if (l.includes('task') || l.includes('todo')) return '/tasks'
+  if (l.includes('report') || l.includes('analytics')) return '/reports'
+  if (l.includes('automation')) return '/automations'
+  return '/dashboard'
 }
 
 const exampleCommands = [
@@ -207,12 +218,8 @@ export default function CommandBar() {
                       <button
                         key={i}
                         onClick={() => {
-                          const route = ACTION_ROUTES[action.label] || action.url
-                          if (route) {
-                            navigate(route)
-                          } else {
-                            toast.success(`Action: ${action.label}`)
-                          }
+                          const route = ACTION_ROUTES[action.label] || action.url || getButtonRoute(action.label || action.text || '')
+                          if (route) navigate(route)
                         }}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700 transition-colors hover:bg-violet-100 dark:border-violet-700 dark:bg-violet-900/20 dark:text-violet-300 dark:hover:bg-violet-900/40"
                       >

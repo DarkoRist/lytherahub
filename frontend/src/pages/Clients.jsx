@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import ContextMenu from '../components/shared/ContextMenu'
 import {
   Plus,
   Search,
@@ -21,6 +22,8 @@ import {
   FileText,
   GripVertical,
   Upload,
+  Pencil,
+  Check,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../api/client'
@@ -184,6 +187,19 @@ export default function Clients() {
     onError: () => toast.error('Enrichment failed'),
   })
 
+  const deleteClient = useMutation({
+    mutationFn: async (id) => {
+      try { await api.delete(`/clients/${id}`) } catch { /* demo */ }
+    },
+    onSuccess: (_r, id) => {
+      queryClient.setQueryData(['clients'], (old) => {
+        const current = Array.isArray(old) ? old : DEMO_CLIENTS
+        return current.filter((c) => c.id !== id)
+      })
+      toast.success('Client deleted')
+    },
+  })
+
   const filteredClients = useMemo(() => {
     if (!clients) return []
     if (!search) return clients
@@ -276,6 +292,8 @@ export default function Clients() {
           clients={filteredClients}
           onClientClick={setSelectedClient}
           onStageChange={(id, stage) => updateStage.mutate({ id, stage })}
+          onClientDelete={(id) => deleteClient.mutate(id)}
+          onClientEnrich={(id) => enrichClient.mutate(id)}
         />
       ) : (
         <ClientTable clients={filteredClients} loading={isLoading} onClientClick={setSelectedClient} />
@@ -307,7 +325,8 @@ export default function Clients() {
 // Pipeline Board (Kanban)
 // ---------------------------------------------------------------------------
 
-function PipelineBoard({ clients, onClientClick, onStageChange }) {
+function PipelineBoard({ clients, onClientClick, onStageChange, onClientDelete, onClientEnrich }) {
+  const [ctxMenu, setCtxMenu] = useState(null)
   const grouped = useMemo(() => {
     const map = {}
     PIPELINE_STAGES.forEach((s) => (map[s] = []))
@@ -318,7 +337,15 @@ function PipelineBoard({ clients, onClientClick, onStageChange }) {
     return map
   }, [clients])
 
+  const ctxItems = (client) => [
+    { label: 'View Details', action: () => onClientClick(client) },
+    { label: 'AI Enrich', action: () => onClientEnrich?.(client.id) },
+    'divider',
+    { label: 'Delete Client', action: () => onClientDelete?.(client.id), danger: true },
+  ]
+
   return (
+    <>
     <div className="flex gap-3 overflow-x-auto pb-4">
       {PIPELINE_STAGES.map((stage) => {
         const stageClients = grouped[stage]
@@ -353,6 +380,7 @@ function PipelineBoard({ clients, onClientClick, onStageChange }) {
                   draggable
                   onDragStart={(e) => e.dataTransfer.setData('text/plain', client.id)}
                   onClick={() => onClientClick(client)}
+                  onContextMenu={(e) => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY, client }) }}
                   className="cursor-pointer rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition-all hover:shadow-md hover:-translate-y-px dark:border-slate-600 dark:bg-slate-800"
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -391,6 +419,15 @@ function PipelineBoard({ clients, onClientClick, onStageChange }) {
         )
       })}
     </div>
+    {ctxMenu && (
+      <ContextMenu
+        x={ctxMenu.x}
+        y={ctxMenu.y}
+        items={ctxItems(ctxMenu.client)}
+        onClose={() => setCtxMenu(null)}
+      />
+    )}
+    </>
   )
 }
 
@@ -452,11 +489,79 @@ function ClientTable({ clients, loading, onClientClick }) {
 }
 
 // ---------------------------------------------------------------------------
+// InlineField — click to edit (Attio-style)
+// ---------------------------------------------------------------------------
+
+function InlineField({ label, value, onSave, type = 'text', options }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value || '')
+
+  const handleSave = () => {
+    onSave(draft)
+    setEditing(false)
+  }
+
+  const handleKey = (e) => {
+    if (e.key === 'Enter' && type !== 'textarea') handleSave()
+    if (e.key === 'Escape') { setDraft(value || ''); setEditing(false) }
+  }
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="w-24 shrink-0 text-xs text-slate-400">{label}</span>
+        {options ? (
+          <select
+            autoFocus
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={handleSave}
+            onKeyDown={handleKey}
+            className="flex-1 rounded border border-brand-400 bg-white px-2 py-1 text-sm focus:outline-none dark:bg-slate-800 dark:text-white"
+          >
+            {options.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        ) : (
+          <input
+            autoFocus
+            type={type}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={handleSave}
+            onKeyDown={handleKey}
+            className="flex-1 rounded border border-brand-400 bg-white px-2 py-1 text-sm focus:outline-none dark:bg-slate-800 dark:text-white"
+          />
+        )}
+        <button onClick={handleSave} className="text-brand-600 hover:text-brand-700">
+          <Check className="h-4 w-4" />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      onClick={() => { setDraft(value || ''); setEditing(true) }}
+      className="group flex cursor-pointer items-center gap-2 rounded px-1 py-0.5 hover:bg-slate-50 dark:hover:bg-slate-800"
+    >
+      <span className="w-24 shrink-0 text-xs text-slate-400">{label}</span>
+      <span className="flex-1 text-sm text-slate-700 dark:text-slate-300">
+        {value || <span className="italic text-slate-400">—</span>}
+      </span>
+      <Pencil className="h-3 w-3 text-slate-300 opacity-0 group-hover:opacity-100 dark:text-slate-600" />
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Client Detail Panel (slide-over)
 // ---------------------------------------------------------------------------
 
 function ClientDetailPanel({ client, onClose, onEnrich, enriching }) {
   const c = client
+  const [localClient, setLocalClient] = useState(client)
   const [newNote, setNewNote] = useState('')
   const [notes, setNotes] = useState([
     { id: 1, text: 'Discussed Q1 roadmap and pricing adjustments.', date: '2026-02-10' },
@@ -491,8 +596,13 @@ function ClientDetailPanel({ client, onClose, onEnrich, enriching }) {
     e.target.value = ''
   }
 
+  const handleFieldUpdate = (field, value) => {
+    setLocalClient((prev) => ({ ...prev, [field]: value }))
+    toast.success(`${field.replace('_', ' ')} updated`)
+  }
+
   const activities = [
-    { type: 'email', desc: `Email sent to ${c.contact_name}`, time: '2 days ago' },
+    { type: 'email', desc: `Email sent to ${localClient.contact_name}`, time: '2 days ago' },
     { type: 'meeting', desc: 'Strategy meeting', time: '1 week ago' },
     { type: 'invoice', desc: `Invoice sent`, time: '2 weeks ago' },
     { type: 'note', desc: 'Pipeline stage updated', time: '3 weeks ago' },
@@ -511,22 +621,37 @@ function ClientDetailPanel({ client, onClose, onEnrich, enriching }) {
         </div>
 
         <div className="space-y-6 p-6">
-          <div className="flex items-center gap-3">
-            <span className={`rounded-full px-3 py-1 text-sm font-semibold ${STAGE_COLORS[c.pipeline_stage]}`}>
-              {STAGE_LABELS[c.pipeline_stage]}
-            </span>
-            {c.deal_value > 0 && (
-              <span className="text-lg font-bold text-slate-900 dark:text-white">{formatCurrency(c.deal_value)}</span>
-            )}
+          <div className="space-y-1 rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800/50">
+            <InlineField
+              label="Contact"
+              value={localClient.contact_name}
+              onSave={(v) => handleFieldUpdate('contact_name', v)}
+            />
+            <InlineField
+              label="Email"
+              value={localClient.email}
+              onSave={(v) => handleFieldUpdate('email', v)}
+              type="email"
+            />
+            <InlineField
+              label="Deal Value"
+              value={localClient.deal_value ? String(localClient.deal_value) : ''}
+              onSave={(v) => handleFieldUpdate('deal_value', parseFloat(v) || 0)}
+              type="number"
+            />
+            <InlineField
+              label="Stage"
+              value={localClient.pipeline_stage}
+              onSave={(v) => handleFieldUpdate('pipeline_stage', v)}
+              options={PIPELINE_STAGES.map((s) => ({ value: s, label: STAGE_LABELS[s] }))}
+            />
           </div>
 
           <div className="space-y-2.5">
-            <InfoRow icon={Users} label={c.contact_name} />
-            <InfoRow icon={Mail} label={c.email} />
-            {c.phone && <InfoRow icon={Phone} label={c.phone} />}
-            {c.website && <InfoRow icon={Globe} label={c.website} />}
-            {c.location && <InfoRow icon={MapPin} label={c.location} />}
-            {c.industry && <InfoRow icon={Building2} label={c.industry} />}
+            {localClient.phone && <InfoRow icon={Phone} label={localClient.phone} />}
+            {localClient.website && <InfoRow icon={Globe} label={localClient.website} />}
+            {localClient.location && <InfoRow icon={MapPin} label={localClient.location} />}
+            {localClient.industry && <InfoRow icon={Building2} label={localClient.industry} />}
           </div>
 
           {c.enrichment_data ? (
@@ -558,12 +683,14 @@ function ClientDetailPanel({ client, onClose, onEnrich, enriching }) {
             </button>
           )}
 
-          {c.notes && (
-            <div>
-              <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Notes</h4>
-              <p className="text-sm text-slate-600 dark:text-slate-400">{c.notes}</p>
-            </div>
-          )}
+          <div className="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800/50">
+            <InlineField
+              label="Notes"
+              value={localClient.notes}
+              onSave={(v) => handleFieldUpdate('notes', v)}
+              type="textarea"
+            />
+          </div>
 
           <div>
             <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Activity Timeline</h4>

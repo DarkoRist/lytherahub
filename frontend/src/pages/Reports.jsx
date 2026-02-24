@@ -11,6 +11,8 @@ import {
   Mail,
   Sparkles,
   TrendingUp,
+  Share2,
+  X,
 } from 'lucide-react'
 import {
   BarChart,
@@ -119,6 +121,9 @@ export default function Reports() {
   const [expandedId, setExpandedId] = useState(null)
   const [reports, setReports] = useState(DEMO_REPORTS)
   const [generating, setGenerating] = useState(false)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [shareEmail, setShareEmail] = useState('')
+  const [shareSchedule, setShareSchedule] = useState('once')
 
   const { data: briefing } = useQuery({
     queryKey: ['reports-briefing'],
@@ -203,17 +208,26 @@ export default function Reports() {
               {briefing?.title || 'Morning Briefing — February 17, 2026'}
             </h2>
           </div>
-          <button
-            onClick={() => {
-              const text = briefing?.content?.summary || briefing?.content?.text || ''
-              navigator.clipboard.writeText(text)
-              toast.success('Briefing copied to clipboard')
-            }}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-800"
-          >
-            <Copy className="h-3.5 w-3.5" />
-            Copy
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const text = briefing?.content?.summary || briefing?.content?.text || ''
+                navigator.clipboard.writeText(text)
+                toast.success('Briefing copied to clipboard')
+              }}
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-800"
+            >
+              <Copy className="h-3.5 w-3.5" />
+              Copy
+            </button>
+            <button
+              onClick={() => setShareModalOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-800"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+              Share
+            </button>
+          </div>
         </div>
         <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
           {briefing?.content?.summary ||
@@ -350,6 +364,56 @@ export default function Reports() {
           )}
         </div>
       </div>
+
+      {/* Share modal */}
+      {shareModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShareModalOpen(false)}>
+          <div className="w-full max-w-md rounded-xl bg-white shadow-2xl dark:bg-slate-800" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+              <h3 className="text-base font-semibold text-slate-900 dark:text-white">Schedule Report Delivery</h3>
+              <button onClick={() => setShareModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4 p-6">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Email address</label>
+                <input
+                  type="email"
+                  value={shareEmail}
+                  onChange={(e) => setShareEmail(e.target.value)}
+                  placeholder="team@company.com"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Schedule</label>
+                <select
+                  value={shareSchedule}
+                  onChange={(e) => setShareSchedule(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                >
+                  <option value="once">Send once</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </div>
+              <button
+                onClick={() => {
+                  setShareModalOpen(false)
+                  toast.success(`Report delivery scheduled${shareSchedule !== 'once' ? ` (${shareSchedule})` : ''}`)
+                  setShareEmail('')
+                }}
+                disabled={!shareEmail.trim()}
+                className="w-full rounded-lg bg-brand-600 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+              >
+                Schedule Delivery
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

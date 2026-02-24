@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import {
@@ -14,6 +15,13 @@ import {
 } from 'lucide-react'
 import api from '../../api/client'
 import { formatRelativeTime } from '../../utils/formatters'
+
+const LIVE_EVENTS = [
+  { id: 'live-1', type: 'email', description: 'AI classified 3 new emails — 1 urgent flagged' },
+  { id: 'live-2', type: 'invoice', description: 'Invoice #1031 marked as paid — €4,800 received' },
+  { id: 'live-3', type: 'client', description: 'SecureNet GmbH moved to Negotiation stage' },
+  { id: 'live-4', type: 'automation', description: 'Invoice reminder workflow completed successfully' },
+]
 
 const DEMO_ACTIVITIES = [
   {
@@ -147,6 +155,9 @@ function getActivityRoute(description = '', type = '') {
 
 export default function ActivityFeed() {
   const navigate = useNavigate()
+  const [liveItems, setLiveItems] = useState([])
+  const [liveEventIdx, setLiveEventIdx] = useState(0)
+
   const {
     data: activities,
     isLoading,
@@ -163,7 +174,23 @@ export default function ActivityFeed() {
     placeholderData: DEMO_ACTIVITIES,
   })
 
-  const items = activities || DEMO_ACTIVITIES
+  // Push a new demo event every 45s
+  useEffect(() => {
+    const id = setInterval(() => {
+      const event = LIVE_EVENTS[liveEventIdx % LIVE_EVENTS.length]
+      const newItem = {
+        ...event,
+        id: `live-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+      }
+      setLiveItems((prev) => [newItem, ...prev].slice(0, 3))
+      setLiveEventIdx((i) => i + 1)
+    }, 45000)
+    return () => clearInterval(id)
+  }, [liveEventIdx])
+
+  const baseItems = activities || DEMO_ACTIVITIES
+  const items = [...liveItems, ...baseItems]
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
@@ -174,6 +201,13 @@ export default function ActivityFeed() {
           <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
             Recent Activity
           </h3>
+          <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 dark:bg-emerald-900/20">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Live</span>
+          </span>
         </div>
         {isError && (
           <button

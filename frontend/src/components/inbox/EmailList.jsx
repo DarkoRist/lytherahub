@@ -22,7 +22,9 @@ function SkeletonCard() {
   )
 }
 
-export default function EmailList({ emails = [], selectedId, onSelect, loading, taskBadges, followUpFlags }) {
+export default function EmailList({ emails = [], selectedId, onSelect, loading, taskBadges, followUpFlags, selectedIds, onToggleSelect }) {
+  const anySelected = selectedIds && selectedIds.size > 0
+
   if (loading) {
     return (
       <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -51,16 +53,38 @@ export default function EmailList({ emails = [], selectedId, onSelect, loading, 
 
   return (
     <div className="divide-y divide-slate-100 dark:divide-slate-800">
-      {emails.map((email) => (
-        <EmailCard
-          key={email.id}
-          email={email}
-          selected={email.id === selectedId}
-          onSelect={onSelect}
-          hasTask={taskBadges?.has(email.id)}
-          followUpDate={followUpFlags?.[email.id] || null}
-        />
-      ))}
+      {emails.map((email) => {
+        const isChecked = selectedIds?.has(email.id) ?? false
+        return (
+          <div key={email.id} className="group relative flex items-stretch">
+            {/* Checkbox — shown on hover or when any selected */}
+            {onToggleSelect && (
+              <div
+                className={`flex shrink-0 items-center pl-3 transition-opacity ${
+                  anySelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={(e) => { e.stopPropagation(); onToggleSelect(email.id) }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-4 w-4 cursor-pointer accent-blue-600"
+                />
+              </div>
+            )}
+            <div className={`flex-1 min-w-0 ${anySelected ? 'pl-2' : ''}`}>
+              <EmailCard
+                email={email}
+                selected={email.id === selectedId}
+                onSelect={onSelect}
+                hasTask={taskBadges?.has(email.id)}
+                followUpDate={followUpFlags?.[email.id] || null}
+              />
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

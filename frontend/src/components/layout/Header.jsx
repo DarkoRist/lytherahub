@@ -20,40 +20,15 @@ const SEVERITY_CONFIG = {
   success: { icon: CheckCircle2, color: 'text-emerald-500' },
 }
 
-export default function Header({ onMenuToggle }) {
+export default function Header({ onMenuToggle, onOpenPalette }) {
   const { user, logout } = useAuth()
   const { dark, toggle } = useTheme()
   const navigate = useNavigate()
-  const [searchValue, setSearchValue] = useState('')
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [alerts, setAlerts] = useState(DEMO_ALERTS)
   const notifRef = useRef(null)
   const userMenuRef = useRef(null)
-
-  const handleSearchKeyDown = (e) => {
-    if (e.key !== 'Enter') return
-    const val = searchValue.trim().toLowerCase()
-    if (!val) return
-    const routes = {
-      inbox: '/inbox', email: '/inbox', mail: '/inbox',
-      calendar: '/calendar', schedule: '/calendar', meeting: '/calendar',
-      invoice: '/invoices', billing: '/invoices', payment: '/invoices',
-      client: '/clients', crm: '/clients', pipeline: '/clients',
-      task: '/tasks', todo: '/tasks',
-      report: '/reports', analytics: '/analytics',
-      automation: '/automations', settings: '/settings',
-    }
-    for (const [keyword, route] of Object.entries(routes)) {
-      if (val.includes(keyword)) {
-        setSearchValue('')
-        navigate(route)
-        return
-      }
-    }
-    setSearchValue('')
-    navigate('/inbox?q=' + encodeURIComponent(searchValue.trim()))
-  }
 
   const unreadCount = alerts.filter((a) => !a.read).length
 
@@ -88,17 +63,18 @@ export default function Header({ onMenuToggle }) {
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div className="relative hidden sm:block">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
-            placeholder="Search or type a command..."
-            className="h-9 w-64 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 lg:w-80"
-          />
-        </div>
+
+        {/* Command palette trigger (replaces old search input) */}
+        <button
+          onClick={onOpenPalette}
+          className="hidden sm:flex h-9 w-64 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-400 transition-colors hover:border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:hover:border-slate-500 lg:w-80"
+        >
+          <Search className="h-4 w-4 shrink-0" />
+          <span className="flex-1 text-left">Search or type a command...</span>
+          <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[10px] text-slate-400 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-500">
+            ⌘K
+          </kbd>
+        </button>
       </div>
 
       <div className="flex items-center gap-2">

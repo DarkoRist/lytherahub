@@ -35,6 +35,55 @@ import {
 } from 'recharts'
 import api from '../api/client'
 
+// Sparkline data for the 4 top stat cards
+const SPARKLINES = {
+  revenue: [
+    { v: 18200 }, { v: 21400 }, { v: 19800 }, { v: 24600 },
+    { v: 22100 }, { v: 26300 }, { v: 27600 },
+  ],
+  clients: [
+    { v: 8 }, { v: 9 }, { v: 10 }, { v: 11 },
+    { v: 12 }, { v: 14 }, { v: 15 },
+  ],
+  emails: [
+    { v: 18 }, { v: 24 }, { v: 21 }, { v: 28 },
+    { v: 32 }, { v: 19 }, { v: 26 },
+  ],
+  tasks: [
+    { v: 5 }, { v: 8 }, { v: 6 }, { v: 10 },
+    { v: 9 }, { v: 12 }, { v: 34 },
+  ],
+}
+
+function Sparkline({ data, color = '#3b82f6' }) {
+  return (
+    <div className="h-10 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data}>
+          <Line
+            type="monotone"
+            dataKey="v"
+            stroke={color}
+            strokeWidth={1.5}
+            dot={false}
+            isAnimationActive={false}
+          />
+          <Tooltip
+            content={({ active, payload }) => {
+              if (!active || !payload?.length) return null
+              return (
+                <div className="rounded border border-slate-200 bg-white px-2 py-1 text-xs shadow dark:border-slate-600 dark:bg-slate-800">
+                  {payload[0].value.toLocaleString()}
+                </div>
+              )
+            }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
 // ---------------------------------------------------------------------------
 // Demo fallback data
 // ---------------------------------------------------------------------------
@@ -192,7 +241,7 @@ const STAGE_LABELS = {
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function StatCard({ icon: Icon, label, value, suffix, trend, trendLabel, color = 'text-brand-600' }) {
+function StatCard({ icon: Icon, label, value, suffix, trend, trendLabel, color = 'text-brand-600', sparklineData, sparklineColor }) {
   const isPositive = trend > 0
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
@@ -214,6 +263,11 @@ function StatCard({ icon: Icon, label, value, suffix, trend, trendLabel, color =
         )}
       </div>
       {trendLabel && <p className="mt-1 text-xs text-slate-400">{trendLabel}</p>}
+      {sparklineData && (
+        <div className="mt-3">
+          <Sparkline data={sparklineData} color={sparklineColor} />
+        </div>
+      )}
     </div>
   )
 }
@@ -357,11 +411,11 @@ export default function Analytics() {
       {tab === 'revenue' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <StatCard icon={DollarSign} label="Total Collected" value={`EUR ${(revenue.total_collected / 1000).toFixed(1)}K`} color="text-emerald-600" />
-            <StatCard icon={DollarSign} label="This Month" value={`EUR ${(revenue.this_month / 1000).toFixed(1)}K`} trend={revenue.growth_pct} trendLabel="vs last month" color="text-brand-600" />
-            <StatCard icon={DollarSign} label="Outstanding" value={`EUR ${(revenue.total_outstanding / 1000).toFixed(1)}K`} color="text-yellow-600" />
+            <StatCard icon={DollarSign} label="Total Collected" value={`EUR ${(revenue.total_collected / 1000).toFixed(1)}K`} color="text-emerald-600" sparklineData={SPARKLINES.revenue} sparklineColor="#10b981" />
+            <StatCard icon={DollarSign} label="This Month" value={`EUR ${(revenue.this_month / 1000).toFixed(1)}K`} trend={revenue.growth_pct} trendLabel="vs last month" color="text-brand-600" sparklineData={SPARKLINES.revenue} sparklineColor="#3b82f6" />
+            <StatCard icon={DollarSign} label="Outstanding" value={`EUR ${(revenue.total_outstanding / 1000).toFixed(1)}K`} color="text-yellow-600" sparklineData={SPARKLINES.emails} sparklineColor="#f59e0b" />
             <div className="cursor-pointer" onClick={() => navigate('/invoices')}>
-              <StatCard icon={AlertTriangle} label="Overdue" value={`EUR ${(revenue.total_overdue / 1000).toFixed(1)}K`} color="text-red-600" />
+              <StatCard icon={AlertTriangle} label="Overdue" value={`EUR ${(revenue.total_overdue / 1000).toFixed(1)}K`} color="text-red-600" sparklineData={SPARKLINES.tasks} sparklineColor="#ef4444" />
             </div>
           </div>
 

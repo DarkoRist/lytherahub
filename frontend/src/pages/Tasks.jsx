@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import api from '../api/client'
 import toast from 'react-hot-toast'
+import ContextMenu from '../components/shared/ContextMenu'
 
 const COLUMNS = [
   { id: 'todo', label: 'To Do', icon: ListTodo, color: 'bg-slate-500' },
@@ -72,8 +73,22 @@ function formatDueDate(dateStr) {
   return { text: due.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), className: 'text-slate-500 dark:text-slate-400' }
 }
 
-function TaskCard({ task, onStatusChange, onDelete, onSelect }) {
+function TaskCard({ task, onStatusChange, onDelete, onSelect, onKbSelect, isKbSelected }) {
   const [dragging, setDragging] = useState(false)
+  const [ctxMenu, setCtxMenu] = useState(null)
+
+  const handleContextMenu = (e) => {
+    e.preventDefault()
+    setCtxMenu({ x: e.clientX, y: e.clientY })
+  }
+
+  const ctxItems = [
+    { label: 'Edit Task', icon: Settings2, action: () => onSelect?.(task) },
+    ...(task.status !== 'in_progress' ? [{ label: 'Move to In Progress', icon: Clock, action: () => onStatusChange(task.id, 'in_progress') }] : []),
+    ...(task.status !== 'done' ? [{ label: 'Mark as Done', icon: CheckCircle2, action: () => onStatusChange(task.id, 'done') }] : []),
+    'divider',
+    { label: 'Delete Task', icon: X, action: () => onDelete(task.id), danger: true },
+  ]
   const priority = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium
   const source = SOURCE_CONFIG[task.source] || SOURCE_CONFIG.manual
   const PriorityIcon = priority.icon
@@ -87,16 +102,23 @@ function TaskCard({ task, onStatusChange, onDelete, onSelect }) {
   }
 
   return (
+    <>
     <div
       draggable
       onDragStart={handleDragStart}
       onDragEnd={() => setDragging(false)}
+      onContextMenu={handleContextMenu}
       onClick={(e) => {
-        if (!e.defaultPrevented) onSelect?.(task)
+        if (!e.defaultPrevented) {
+          onKbSelect?.(task)
+          onSelect?.(task)
+        }
       }}
       className={`group rounded-lg border bg-white p-3 shadow-sm transition-all dark:bg-slate-800 ${
         dragging
           ? 'opacity-50 border-brand-400 ring-2 ring-brand-200 dark:ring-brand-700'
+          : isKbSelected
+          ? 'border-brand-400 ring-2 ring-brand-200 dark:border-brand-500 dark:ring-brand-700'
           : 'border-slate-200 dark:border-slate-700 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600'
       } cursor-pointer`}
     >
@@ -158,10 +180,19 @@ function TaskCard({ task, onStatusChange, onDelete, onSelect }) {
         </div>
       </div>
     </div>
+    {ctxMenu && (
+      <ContextMenu
+        x={ctxMenu.x}
+        y={ctxMenu.y}
+        items={ctxItems}
+        onClose={() => setCtxMenu(null)}
+      />
+    )}
+    </>
   )
 }
 
-function KanbanColumn({ column, tasks, onStatusChange, onDelete, onSelect }) {
+function KanbanColumn({ column, tasks, onStatusChange, onDelete, onSelect, onKbSelect, kbTaskId }) {
   const [dragOver, setDragOver] = useState(false)
   const Icon = column.icon
 
@@ -218,6 +249,8 @@ function KanbanColumn({ column, tasks, onStatusChange, onDelete, onSelect }) {
               onStatusChange={onStatusChange}
               onDelete={onDelete}
               onSelect={onSelect}
+              onKbSelect={onKbSelect}
+              isKbSelected={kbTaskId === task.id}
             />
           ))
         )}
@@ -410,6 +443,7 @@ export default function Tasks() {
   const [filterPriority, setFilterPriority] = useState('')
   const [filterSource, setFilterSource] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [kbTask, setKbTask] = useState(null)
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -432,6 +466,32 @@ export default function Tasks() {
   useEffect(() => {
     fetchTasks()
   }, [fetchTasks])
+
+  // Keyboard shortcuts (Linear-style)
+  useEffect(() => {
+    const PRIORITY_MAP = { '1': 'urgent', '2': 'high', '3': 'medium', '4': 'low' }
+    const handleKey = (e) => {
+      const tag = e.target.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return
+      if (e.key === 'c' || e.key === 'C') {
+        setShowModal(true)
+        return
+      }
+      if (e.key === 'f' || e.key === 'F') {
+        const el = document.querySelector('[data-task-search]')
+        el?.focus()
+        return
+      }
+      if (PRIORITY_MAP[e.key] && kbTask) {
+        setTasks((prev) =>
+          prev.map((t) => t.id === kbTask.id ? { ...t, priority: PRIORITY_MAP[e.key] } : t)
+        )
+        toast.success(`Priority set to ${PRIORITY_MAP[e.key]}`)
+      }
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [kbTask])
 
   const handleStatusChange = async (taskId, newStatus) => {
     // Update local state immediately
@@ -538,6 +598,7 @@ export default function Tasks() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
+            data-task-search
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search tasks..."
@@ -572,6 +633,14 @@ export default function Tasks() {
         </div>
       </div>
 
+      {/* Keyboard shortcut hints */}
+      <div className="flex flex-wrap items-center gap-3 rounded-lg bg-slate-50 px-4 py-2 text-xs text-slate-400 dark:bg-slate-800/50">
+        <span><kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[10px] dark:border-slate-600 dark:bg-slate-700">C</kbd> New task</span>
+        <span><kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[10px] dark:border-slate-600 dark:bg-slate-700">F</kbd> Search</span>
+        <span><kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[10px] dark:border-slate-600 dark:bg-slate-700">1–4</kbd> Set priority</span>
+        {kbTask && <span className="text-brand-500">Selected: {kbTask.title.slice(0, 30)}</span>}
+      </div>
+
       {/* Kanban board */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {COLUMNS.map((col) => (
@@ -582,6 +651,8 @@ export default function Tasks() {
             onStatusChange={handleStatusChange}
             onDelete={handleDelete}
             onSelect={setSelectedTask}
+            onKbSelect={setKbTask}
+            kbTaskId={kbTask?.id}
           />
         ))}
       </div>

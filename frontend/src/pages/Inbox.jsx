@@ -295,6 +295,16 @@ export default function Inbox() {
   const [showSnoozeFor, setShowSnoozeFor] = useState(null)
   const [showFollowUpFor, setShowFollowUpFor] = useState(null)
 
+  // Bulk select state
+  const [selectedIds, setSelectedIds] = useState(new Set())
+  const toggleSelect = (id) => setSelectedIds((prev) => {
+    const next = new Set(prev)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
+  })
+  const selectAll = (emails) => setSelectedIds(new Set(emails.map((e) => e.id)))
+  const clearSelection = () => setSelectedIds(new Set())
+
   // ---- Fetch emails --------------------------------------------------
   const {
     data: emailsData,
@@ -652,6 +662,48 @@ export default function Inbox() {
                 </p>
               </div>
             ) : (
+              <>
+              {/* Bulk action toolbar */}
+              {selectedIds.size > 0 && (
+                <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-blue-200 bg-blue-50 px-4 py-2 dark:border-blue-800 dark:bg-blue-900/20">
+                  <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
+                    {selectedIds.size} selected
+                  </span>
+                  <button
+                    onClick={() => {
+                      setLocalEmails((prev) => {
+                        const cur = Array.isArray(prev) ? prev : filteredEmails
+                        return cur.map((e) => selectedIds.has(e.id) ? { ...e, is_read: true } : e)
+                      })
+                      clearSelection()
+                      toast.success(`Marked ${selectedIds.size} as read`)
+                    }}
+                    className="rounded px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-900/40"
+                  >
+                    Mark Read
+                  </button>
+                  <button
+                    onClick={() => {
+                      const ids = [...selectedIds]
+                      setLocalEmails((prev) => {
+                        const cur = Array.isArray(prev) ? prev : filteredEmails
+                        return cur.filter((e) => !ids.includes(e.id))
+                      })
+                      clearSelection()
+                      toast.success(`Archived ${ids.length} emails`)
+                    }}
+                    className="rounded px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-900/40"
+                  >
+                    Archive
+                  </button>
+                  <button
+                    onClick={clearSelection}
+                    className="ml-auto rounded px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
               <EmailList
                 emails={filteredEmails}
                 selectedId={selectedEmail?.id}
@@ -659,7 +711,10 @@ export default function Inbox() {
                 loading={isLoading}
                 taskBadges={taskBadges}
                 followUpFlags={followUpFlags}
+                selectedIds={selectedIds}
+                onToggleSelect={toggleSelect}
               />
+              </>
             )}
 
             {/* Pagination */}

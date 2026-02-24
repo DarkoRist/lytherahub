@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import Sidebar from './Sidebar'
 import Header from './Header'
 import AIChatSidebar from '../shared/AIChatSidebar'
+import CommandPalette from '../shared/CommandPalette'
 
 function DemoBanner({ onDismiss }) {
   return (
@@ -20,8 +22,22 @@ export default function Layout({ children }) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [showDemoBanner, setShowDemoBanner] = useState(true)
+  const [paletteOpen, setPaletteOpen] = useState(false)
   const { user } = useAuth()
   const isDemoUser = user?.email === 'demo@lytherahub.ai'
+  const location = useLocation()
+
+  // Global ⌘K / Ctrl+K listener
+  useEffect(() => {
+    const handleKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setPaletteOpen((prev) => !prev)
+      }
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [])
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -45,12 +61,15 @@ export default function Layout({ children }) {
 
       {/* Main content */}
       <div className={`transition-all duration-200 ${collapsed ? 'md:ml-16' : 'md:ml-60'}`}>
-        <Header onMenuToggle={() => setMobileOpen(!mobileOpen)} />
-        <main className="p-4 lg:p-6">{children}</main>
+        <Header onMenuToggle={() => setMobileOpen(!mobileOpen)} onOpenPalette={() => setPaletteOpen(true)} />
+        <main key={location.pathname} className="p-4 lg:p-6 animate-fade-in">{children}</main>
       </div>
 
       {/* AI Chat Assistant — always available */}
       <AIChatSidebar />
+
+      {/* Global command palette */}
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   )
 }

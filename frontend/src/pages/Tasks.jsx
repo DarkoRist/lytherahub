@@ -434,40 +434,42 @@ export default function Tasks() {
   }, [fetchTasks])
 
   const handleStatusChange = async (taskId, newStatus) => {
-    // Optimistic update
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
-    )
+    // Update local state immediately
+    setTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, status: newStatus } : t))
+    if (newStatus === 'done') toast.success('Task completed!')
     try {
       await api.put(`/tasks/${taskId}`, { status: newStatus })
-      if (newStatus === 'done') toast.success('Task completed!')
     } catch {
-      toast.error('Failed to update task')
-      fetchTasks()
+      // Demo mode: keep local change
     }
   }
 
   const handleDelete = async (taskId) => {
     setTasks((prev) => prev.filter((t) => t.id !== taskId))
+    toast.success('Task deleted')
     try {
       await api.delete(`/tasks/${taskId}`)
-      toast.success('Task deleted')
     } catch {
-      toast.error('Failed to delete task')
-      fetchTasks()
+      // Demo mode: keep local change
     }
   }
 
   const handleAdd = async (taskData) => {
+    const newTask = {
+      id: `t-${Date.now()}`,
+      ...taskData,
+      status: 'todo',
+      source: 'manual',
+      created_at: new Date().toISOString(),
+    }
+    setTasks((prev) => [newTask, ...prev])
+    toast.success('Task created')
     try {
       const { data } = await api.post('/tasks', taskData)
-      setTasks((prev) => [data, ...prev])
-      toast.success('Task created')
+      // Replace temp task with real one if API succeeds
+      setTasks((prev) => prev.map((t) => t.id === newTask.id ? { ...t, ...data } : t))
     } catch {
-      // Demo fallback — add locally
-      const newTask = { ...taskData, id: `t-${Date.now()}` }
-      setTasks((prev) => [newTask, ...prev])
-      toast.success('Task created')
+      // Demo mode: keep locally created task
     }
   }
 

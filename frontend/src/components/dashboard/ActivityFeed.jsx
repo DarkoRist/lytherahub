@@ -244,7 +244,7 @@ export default function ActivityFeed() {
       {items.length > 0 && (
         <div className="border-t border-slate-100 px-5 py-3 dark:border-slate-700">
           <Link
-            to="/analytics"
+            to="/reports"
             className="group flex items-center justify-center gap-1 text-sm font-medium text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400 transition-colors"
           >
             View all activity

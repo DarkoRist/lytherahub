@@ -151,10 +151,10 @@ export default function Automations() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard label="Active" value={activeCount} icon={Zap} color="green" />
-        <StatCard label="Total Runs" value={totalRuns} icon={Activity} color="blue" />
-        <StatCard label="Time Saved" value="~18h" icon={Clock} color="purple" />
-        <StatCard label="Success Rate" value="97%" icon={CheckCircle2} color="emerald" />
+        <StatCard label="Active Automations" value={activeCount} icon={Zap} color="blue" />
+        <StatCard label="Total Runs" value={totalRuns.toLocaleString()} icon={Activity} color="blue" />
+        <StatCard label="Estimated Time Saved" value={`${Math.round(totalRuns * 0.05)}h`} icon={Clock} color="purple" />
+        <StatCard label="Success Rate" value="98.2%" icon={CheckCircle2} color="emerald" />
       </div>
 
       {/* Automation cards */}

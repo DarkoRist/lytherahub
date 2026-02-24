@@ -166,14 +166,29 @@ function ProfileTab({ user }) {
 // ---------------------------------------------------------------------------
 
 function IntegrationsTab() {
-  const integrations = [
-    { name: 'Gmail', icon: Mail, connected: true, lastSync: '2 min ago', description: 'Read inbox, classify, draft replies' },
-    { name: 'Google Calendar', icon: Calendar, connected: true, lastSync: '5 min ago', description: 'Read events, create meetings' },
-    { name: 'Google Drive', icon: HardDrive, connected: false, lastSync: null, description: 'Create folders, upload documents' },
-    { name: 'Slack', icon: MessageSquare, connected: true, lastSync: '10 min ago', description: 'Notifications, slash commands' },
-    { name: 'Stripe', icon: CreditCard, connected: true, lastSync: '1 hour ago', description: 'Subscription billing, payments' },
-    { name: 'n8n', icon: Zap, connected: true, lastSync: 'Running', description: 'Workflow automation engine' },
-  ]
+  const [integrations, setIntegrations] = useState([
+    { id: 'gmail', name: 'Gmail', icon: Mail, connected: true, lastSync: '2 min ago', description: 'Read inbox, classify, draft replies' },
+    { id: 'calendar', name: 'Google Calendar', icon: Calendar, connected: true, lastSync: '5 min ago', description: 'Read events, create meetings' },
+    { id: 'drive', name: 'Google Drive', icon: HardDrive, connected: false, lastSync: null, description: 'Create folders, upload documents' },
+    { id: 'slack', name: 'Slack', icon: MessageSquare, connected: true, lastSync: '10 min ago', description: 'Notifications, slash commands' },
+    { id: 'stripe', name: 'Stripe', icon: CreditCard, connected: true, lastSync: '1 hour ago', description: 'Subscription billing, payments' },
+    { id: 'n8n', name: 'n8n', icon: Zap, connected: true, lastSync: 'Running', description: 'Workflow automation engine' },
+  ])
+
+  const handleToggle = (id) => {
+    setIntegrations((prev) =>
+      prev.map((intg) => {
+        if (intg.id !== id) return intg
+        const nowConnected = !intg.connected
+        toast.success(nowConnected ? `${intg.name} connected` : `${intg.name} disconnected`)
+        return {
+          ...intg,
+          connected: nowConnected,
+          lastSync: nowConnected ? 'Just now' : null,
+        }
+      })
+    )
+  }
 
   return (
     <div className="max-w-4xl space-y-4">
@@ -181,7 +196,7 @@ function IntegrationsTab() {
         const Icon = integration.icon
         return (
           <div
-            key={integration.name}
+            key={integration.id}
             className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800"
           >
             <div className="flex items-center gap-4">
@@ -209,9 +224,7 @@ function IntegrationsTab() {
             </div>
 
             <button
-              onClick={() =>
-                toast.success(integration.connected ? `${integration.name} disconnected` : `${integration.name} connected`)
-              }
+              onClick={() => handleToggle(integration.id)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
                 integration.connected
                   ? 'border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700'

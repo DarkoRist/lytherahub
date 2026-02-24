@@ -5,6 +5,7 @@ import {
   Calendar,
   ChevronDown,
   Clock,
+  Copy,
   FileText,
   Loader2,
   Mail,
@@ -195,11 +196,24 @@ export default function Reports() {
 
       {/* Today's briefing hero — always renders with hardcoded fallback */}
       <div className="rounded-xl border border-brand-200 bg-gradient-to-br from-brand-50 to-blue-50 p-6 dark:border-brand-800 dark:from-brand-900/20 dark:to-blue-900/20">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-            {briefing?.title || 'Morning Briefing — February 17, 2026'}
-          </h2>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+              {briefing?.title || 'Morning Briefing — February 17, 2026'}
+            </h2>
+          </div>
+          <button
+            onClick={() => {
+              const text = briefing?.content?.summary || briefing?.content?.text || ''
+              navigator.clipboard.writeText(text)
+              toast.success('Briefing copied to clipboard')
+            }}
+            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-800"
+          >
+            <Copy className="h-3.5 w-3.5" />
+            Copy
+          </button>
         </div>
         <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
           {briefing?.content?.summary ||

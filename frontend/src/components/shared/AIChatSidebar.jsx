@@ -104,22 +104,16 @@ function getLastAIMessage(messages) {
 function getChatDemoReply(text, messages = []) {
   const t = text.toLowerCase().trim()
 
-  // --- Affirmative follow-ups: "yes", "sure", "ok", "do it", "go ahead" ---
-  // messages includes the current user message; getLastAIMessage skips it to find prior AI reply
-  const affirmatives = ['yes', 'sure', 'ok', 'okay', 'do it', 'go ahead', 'yep', 'yeah', 'please', 'sounds good', 'let\'s do it']
+  // --- Affirmative follow-ups ---
+  const affirmatives = ['yes', 'sure', 'ok', 'okay', 'do it', 'go ahead', 'yep', 'yeah', 'please', 'sounds good', "let's do it"]
   if (affirmatives.some(a => t === a || t === a + '!' || t === a + '.')) {
     const lastAI = getLastAIMessage(messages)
-    // Check context even without "?" — match on keywords from the last AI response
     const ctx = lastAI.toLowerCase()
     if (ctx.includes('draft repl') || ctx.includes('draft replies') || ctx.includes('urgent ones')) {
-      return "I'll draft replies for all 3 urgent emails. Here's what I've prepared:\n\n" +
-        "**1. Frank Hartmann (SmartHome)** — Acknowledged the IoT dashboard issue and proposed a fix timeline for next Tuesday.\n\n" +
-        "**2. Hans Weber (TechVision)** — Confirmed the Q1 contract review meeting for Thursday at 2 PM.\n\n" +
-        "**3. Dr. Vogel (BioPharm)** — Thanked them for the data visualization project inquiry and requested a brief call.\n\n" +
-        "Want me to send these, or would you like to edit any of them first?"
+      return "I'll draft replies for all 3 urgent emails. Here's what I've prepared:\n\n**1. Frank Hartmann (SmartHome)** — Acknowledged the IoT dashboard issue and proposed a fix timeline for next Tuesday.\n\n**2. Hans Weber (TechVision)** — Confirmed the Q1 contract review meeting for Thursday at 2 PM.\n\n**3. Dr. Vogel (BioPharm)** — Thanked them for the data visualization project inquiry and requested a brief call.\n\nWant me to send these, or would you like to edit any of them first?"
     }
     if (ctx.includes('reminder') || ctx.includes('send reminder') || ctx.includes('overdue account')) {
-      return "Done! I've sent a polite payment reminder to CloudFirst AG for invoice #INV-1002 (EUR 8,500). This is their second reminder — the tone has been slightly firmed up. I'll escalate again in 7 days if unpaid."
+      return "Done! I've sent a polite payment reminder to CloudFirst AG for invoice #INV-1002 (€8,500). This is their second reminder — the tone has been slightly firmed up. I'll escalate again in 7 days if unpaid."
     }
     if (ctx.includes('send') && ctx.includes('these')) {
       return "All 3 emails sent successfully!\n\n- **Frank Hartmann** — Sent at 10:32 AM\n- **Hans Weber** — Sent at 10:32 AM\n- **Dr. Vogel** — Sent at 10:32 AM\n\nI've logged these in your activity feed. Anything else?"
@@ -128,7 +122,7 @@ function getChatDemoReply(text, messages = []) {
       return "Meeting scheduled! I've booked **1:00 PM - 2:00 PM** today.\n\nI'll send a calendar invite and add a prep brief 30 minutes before. What's the meeting about?"
     }
     if (ctx.includes('follow-up') || ctx.includes('follow up') || ctx.includes('stale lead')) {
-      return "Done! I've created follow-up tasks for all 3 stale leads:\n\n1. **GreenEnergy Startup** — Follow up tomorrow at 9 AM\n2. **FoodTech Berlin** — Follow up tomorrow at 10 AM\n3. **BioPharm Research** — Follow up Wednesday at 9 AM\n\nI'll draft personalized emails for each. Want to review them?"
+      return "Done! I've created follow-up tasks for all 3 stale leads:\n\n1. **GreenEnergy AG** — Follow up tomorrow at 9 AM\n2. **StartupHub Berlin** — Follow up tomorrow at 10 AM\n3. **EduLearn Platform** — Follow up Wednesday at 9 AM\n\nI'll draft personalized emails for each. Want to review them?"
     }
     if (ctx.includes('invoice') || ctx.includes('outstanding') || ctx.includes('overdue')) {
       return "Done! I've flagged CloudFirst AG and MediaWave GmbH as overdue and queued reminders. I'll notify you when they respond."
@@ -139,79 +133,68 @@ function getChatDemoReply(text, messages = []) {
     return "Sure! What would you like me to help with?"
   }
 
-  // --- "reply to [name]" pattern ---
-  const replyMatch = t.match(/(?:reply to|respond to|write to|email)\s+(.+)/i)
-  if (replyMatch) {
-    const name = replyMatch[1].replace(/[?.!]/g, '').trim()
-    const capName = name.charAt(0).toUpperCase() + name.slice(1)
-    return `I'll draft a reply to ${capName}. Based on recent emails, here's a professional response about the latest discussion:\n\nDear ${capName},\n\nThank you for your message regarding the project update. I'd like to confirm that we're on track with the deliverables and will have the revised proposal ready by end of week.\n\nPlease let me know if you need anything else in the meantime.\n\nBest regards\n\nWant me to adjust the tone or send this?`
+  // --- Revenue / money / income ---
+  if (t.includes('revenue') || t.includes('money') || t.includes('income') || t.includes('earning')) {
+    return "📊 **Revenue Summary**\n\nYour revenue this month is **€27,600**, down 18.3% from January's €33,800. Main drivers:\n- TechVision GmbH: €12,500 paid ✓\n- FinTech Solutions: €22,000 paid ✓\n- CloudFirst AG: €8,500 overdue ⚠️\n- MediaWave GmbH: €3,200 overdue ⚠️\n\nTotal outstanding: **€39,200**. I recommend sending reminders to CloudFirst and MediaWave today."
   }
 
-  // --- Draft / write / compose ---
-  if (t.includes('draft') || t.includes('write') || t.includes('compose')) {
-    return "I can help draft that. Here's a professional template based on your recent communications:\n\n**Subject:** Follow-up on our recent discussion\n\nDear [Recipient],\n\nThank you for taking the time to discuss [topic] with us. I wanted to follow up on the key points we covered:\n\n1. [Action item 1]\n2. [Action item 2]\n\nPlease let me know if you have any questions or if you'd like to schedule a follow-up call.\n\nBest regards\n\nTell me who this is for and I'll personalize it with context from your CRM."
-  }
-
-  // --- Schedule / book / meeting (with free slots) ---
-  if (t.includes('schedule') || t.includes('book')) {
-    return "I can schedule that. When works best? I see these free slots today: **11-12**, **1-2:30**, **4-5**.\n\nOr tell me a specific day and time and I'll check availability."
-  }
-
-  // --- Remind / follow up ---
-  if (t.includes('remind') || t.includes('follow up') || t.includes('follow-up')) {
-    return "I'll create a reminder task. Who should I follow up with?\n\nHere are contacts you haven't reached out to recently:\n- **GreenEnergy Startup** — 20 days since last contact\n- **FoodTech Berlin** — 23 days since last contact\n- **BioPharm Research** — 8 days since last contact\n\nWant me to set reminders for all of them?"
-  }
-
-  // --- Todo / tasks / to do ---
-  if (t.includes('todo') || t.includes('task') || t.includes('to do') || t.includes('to-do')) {
-    return "Here are your **pending tasks:**\n\n1. 🔴 **Reply to Frank Hartmann** — urgent IoT dashboard email *(due today)*\n2. 🔴 **Send TechVision Q1 contract** for review *(due today)*\n3. 🟠 **Prepare BioPharm partnership proposal** *(due tomorrow)*\n4. 🟠 **Follow up on CloudFirst AG** overdue invoice *(overdue 3 days)*\n5. 🔵 **Review SmartHome project milestones** *(due Wed)*\n6. 🔵 **Update CRM notes for SecureNet call** *(due Thu)*\n\n**3 overdue tasks:**\n- Send DataStream Analytics onboarding email\n- Complete GreenEnergy pricing proposal\n- Update weekly team report\n\nWant me to prioritize or reassign any of these?"
-  }
-
-  // --- Revenue / money / earned / income ---
-  if (t.includes('revenue') || t.includes('money') || t.includes('earned') || t.includes('income')) {
-    return "Here's your revenue breakdown:\n\n**This month (February):** EUR 27,600 collected from 8 paid invoices\n**Outstanding:** EUR 34,000 across 6 invoices\n**Overdue:** EUR 8,500 (2 invoices — CloudFirst AG and MediaWave GmbH)\n**Trend:** Up 18.3% vs January (EUR 23,300)\n\n| Client | Amount |\n|--------|--------|\n| TechVision GmbH | EUR 8,500 |\n| FinTech Solutions | EUR 22,000 |\n| DesignStudio Co. | EUR 6,800 |\n\nYour top client this month is TechVision GmbH at EUR 8,500. Want me to break this down further?"
-  }
-
-  // --- Client / clients / pipeline ---
-  if (t.includes('client') || t.includes('pipeline')) {
-    return "You have **15 active clients** across your pipeline:\n\n• **Lead:** 4 (MediaWave, QuickShop, EduLearn, FoodTech)\n• **Contacted:** 3 (StartupHub, DataSync, SecureNet)\n• **Proposal:** 2 (NovaTech, GreenEnergy)\n• **Negotiation:** 2 (CloudFirst, BioPharm)\n• **Won:** 3 (TechVision, DesignStudio, FinTech)\n• **Lost:** 1 (LogiTrans)\n\n⚠️ 3 leads haven't been contacted in 10+ days. Want me to draft follow-up emails?"
-  }
-
-  // --- Invoice / invoices / overdue / payment ---
-  if (t.includes('invoice') || t.includes('overdue') || t.includes('payment')) {
-    return "Invoice summary:\n\n**Total outstanding:** EUR 34,000 across 6 invoices\n**Overdue:** 2 invoices totaling EUR 8,500\n  → CloudFirst AG: EUR 5,200 (14 days late)\n  → MediaWave GmbH: EUR 3,300 (7 days late)\n**Paid this month:** EUR 27,600\n**Expected this week:** EUR 12,300 (3 invoices due)\n\nShould I send reminders to the overdue accounts?"
+  // --- Invoice / overdue / payment ---
+  if (t.includes('invoice') || t.includes('overdue') || t.includes('payment') || t.includes('unpaid')) {
+    return "🧾 **Invoice Status**\n\n2 invoices are overdue:\n- **CloudFirst AG** — €8,500 (17 days late)\n- **MediaWave GmbH** — €3,200 (15 days late)\n\nTotal at risk: **€11,700**. Shall I draft reminder emails for both? I can escalate the tone since these are past 14 days."
   }
 
   // --- Email / inbox / unread ---
-  if (t.includes('email') || t.includes('inbox') || t.includes('unread') || t.includes('mail')) {
-    return "Your inbox right now:\n\n**12 unread emails:**\n• 🔴 3 urgent (Frank Hartmann, Hans Weber, Dr. Vogel)\n• 👤 2 client-related (TechVision contract, SecureNet proposal)\n• 💰 2 invoice-related (payment confirmations)\n• 📰 2 newsletters\n• 3 need replies (oldest: 2 days from Hans at TechVision)\n\nWould you like me to draft replies to the urgent ones?"
+  if (t.includes('email') || t.includes('inbox') || t.includes('mail') || t.includes('unread')) {
+    return "📧 **Inbox Summary**\n\n12 unread emails. Here's what needs attention:\n\n**Urgent (3):**\n- Frank Hartmann — IoT dashboard contract update\n- Sarah Mitchell — Decision needed by Friday\n- Dr. Vogel — Q1 review scheduling\n\n**Clients (2):** NovaTech proposal feedback, SecureNet follow-up\n**Invoices (4):** Payment confirmations and queries\n\nI can draft replies to any of these. Who should I start with?"
   }
 
-  // --- Schedule / calendar / meeting / today ---
-  if (t.includes('calendar') || t.includes('meeting') || t.includes('today')) {
-    return "Today's schedule:\n\n**10:00 AM** — Team Standup (15 min)\n**3:00 PM** — Client Call with Hans Weber, TechVision GmbH\n  📋 Prep brief ready: Q1 contract review, open invoice EUR 3,200\n\n**Tomorrow:**\n**9:30 AM** — BioPharm Research Partnership Call\n**2:00 PM** — SecureNet Kickoff Meeting\n\nYou have 3 free slots today: 11-12, 1-2:30, and 4-5. Want me to schedule something?"
+  // --- Client / pipeline / lead / deal ---
+  if (t.includes('client') || t.includes('pipeline') || t.includes('lead') || t.includes('deal')) {
+    return "👥 **Pipeline Overview**\n\n15 active clients across 6 stages:\n- **Won** (4): FinTech, TechVision, DesignStudio, DataSync — €147K total\n- **Negotiation** (2): CloudFirst (€28K), BioPharm (€55K) — close soon\n- **Proposal** (2): NovaTech (€35K), GreenEnergy (€22K)\n- **Stale leads** (3): No contact in 7+ days\n\n💡 Recommendation: Follow up with StartupHub Berlin today — 12 days since last contact."
   }
 
-  // --- Short / ambiguous message: use conversation context rather than resetting ---
-  if (t.length <= 10 || /^[\d\w]+ \d{1,2}$/.test(t) || /^\w{3,9} \d{1,2}$/.test(t)) {
+  // --- Meeting / calendar / schedule / today ---
+  if (t.includes('meeting') || t.includes('calendar') || t.includes('schedule') || t.includes('today')) {
+    return "📅 **Today's Schedule**\n\n**10:00 AM** — Team Standup (Engineering)\n**3:00 PM** — Client Call with Hans Weber (TechVision)\n\nMeeting prep for the 3 PM call is ready. Hans's company has an open invoice of €9,500 and they've expressed interest in expanding scope.\n\nTomorrow: Product demo with NovaTech at 11 AM. Prep brief not yet generated — want me to create it?"
+  }
+
+  // --- Task / todo / to do ---
+  if (t.includes('task') || t.includes('todo') || t.includes('to do') || t.includes('do today')) {
+    return "✅ **Your Tasks**\n\n**Due today (2 urgent):**\n- Finalize TechVision contract — *Urgent*\n- Follow up on overdue invoices — *Urgent*\n\n**Due this week:**\n- Send CloudFirst proposal (tomorrow)\n- Schedule NovaTech kickoff call (Wed)\n- Q1 budget review (Thu)\n\n**In progress (2):** NovaTech demo prep, PR #247 review\n\nWant me to prioritize or create any new tasks?"
+  }
+
+  // --- Report / weekly / summary / performance ---
+  if (t.includes('report') || t.includes('weekly') || t.includes('summary') || t.includes('performance')) {
+    return "📈 **This Week's Summary**\n\n**Revenue:** €22,000 collected, 3 invoices sent\n**Emails:** 42 processed, 6 urgent replied, 12 auto-archived\n**Meetings:** 8 total — 3 client calls, 2 strategy sessions\n**Tasks:** 18 completed, 4 AI-generated\n**Pipeline:** 2 new leads, 1 deal closed (FinTech Solutions)\n\n🤖 Automations saved ~4.5 hours this week.\n\nFull report available in the Reports section."
+  }
+
+  // --- Automation / workflow ---
+  if (t.includes('automation') || t.includes('workflow')) {
+    return "⚡ **Automations Running**\n\n5 of 6 automations are active:\n- **Invoice Reminder** — Ran today at 6 AM ✓\n- **Meeting Prep Generator** — Runs daily at 8 PM ✓\n- **Email Auto-Classifier** — Running continuously ✓\n- **New Lead Onboarding** — Last run: 3 days ago ✓\n- **Weekly Report** — Runs every Monday ✓\n- **Slack Daily Briefing** — *Disabled*\n\n312 total automation runs this month, saving ~15 hours."
+  }
+
+  // --- Help / what can you do ---
+  if (t.includes('help') || t.includes('what can you') || t.includes('what do')) {
+    return "🤖 **I can help you with:**\n\n- **Revenue & Invoices** — \"How much is outstanding?\"\n- **Inbox** — \"Summarize urgent emails\"\n- **Calendar** — \"What's my schedule tomorrow?\"\n- **Clients** — \"Which leads need follow-up?\"\n- **Tasks** — \"What's due today?\"\n- **Reports** — \"Show this week's performance\"\n- **Automations** — \"What automations are running?\"\n\nJust ask naturally — I understand context!"
+  }
+
+  // --- Short / ambiguous message: use conversation context ---
+  if (t.length <= 10) {
     const lastAI = getLastAIMessage(messages)
     if (lastAI && lastAI.length > 20) {
       const ctx = lastAI.toLowerCase()
-      if (ctx.includes('schedule') || ctx.includes('free slot') || ctx.includes('calendar') || ctx.includes('meeting')) {
+      if (ctx.includes('schedule') || ctx.includes('free slot') || ctx.includes('calendar')) {
         return `Got it — I'll check availability around that date. Do you want me to schedule something specific, or would you like to see what's on the calendar then?`
       }
       if (ctx.includes('invoice') || ctx.includes('overdue') || ctx.includes('payment')) {
         return `Understood. I'll filter invoices by that date. Want me to show all invoices due around that time, or just the overdue ones?`
-      }
-      if (ctx.includes('report') || ctx.includes('revenue') || ctx.includes('summary')) {
-        return `I'll pull the data for that period. Should I show a summary or a full breakdown?`
       }
       return `I see you're referencing "${text.trim()}" — can you give me a bit more context? I want to make sure I'm helping with the right thing.`
     }
   }
 
   // --- Default / fallback ---
-  return "I'm your AI business assistant. I have access to all your business data. Here's what I can help with:\n\n📧 **Emails** — \"How many urgent emails do I have?\"\n📅 **Calendar** — \"What's my schedule tomorrow?\"\n💰 **Invoices** — \"Which invoices are overdue?\"\n👥 **Clients** — \"Show me my pipeline\"\n📊 **Revenue** — \"How much revenue this month?\"\n✅ **Tasks** — \"What's due today?\"\n✍️ **Draft** — \"Reply to Hans\" or \"Compose an email\"\n⏰ **Reminders** — \"Follow up with CloudFirst\"\n\nJust ask in plain English!"
+  return `I understand you're asking about "${text}". Here's your current business snapshot:\n\n📊 Revenue this month: **€27,600** (+12% QoQ)\n📧 Unread emails: **12** (3 urgent)\n📅 Meetings today: **2**\n✅ Tasks due today: **2 urgent**\n⚠️ Overdue invoices: **€11,700**\n\nAsk me anything specific and I'll give you a detailed answer!`
 }
 
 export default function AIChatSidebar() {

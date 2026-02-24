@@ -126,18 +126,56 @@ const DEMO_PRODUCTIVITY = {
   ],
 }
 
-const DEMO_INSIGHTS = {
-  insights: [
-    { type: 'positive', icon: 'TrendingUp', color: 'green', title: 'Revenue up 18.3% this month', message: 'EUR 27.6K collected vs EUR 23.3K last month. TechVision\'s EUR 8,500 contract was the largest single deal.', link: '/invoices' },
-    { type: 'warning', icon: 'AlertTriangle', color: 'red', title: '2 invoices overdue (EUR 8,500)', message: 'CloudFirst AG (EUR 5,200, 14 days late) and MediaWave GmbH (EUR 3,300, 7 days late). Consider escalating.', link: '/invoices' },
-    { type: 'warning', icon: 'AlertTriangle', color: 'amber', title: '3 stale leads need attention', message: "GreenEnergy Startup, FoodTech Berlin, and BioPharm Research haven't been contacted in 10+ days.", link: '/clients' },
-    { type: 'positive', icon: 'CheckCircle2', color: 'green', title: 'Win rate improved to 80%', message: '4 deals won vs 1 lost. Up from 65% last quarter. Follow-up automation is converting more leads.', link: '/clients' },
-    { type: 'info', icon: 'Mail', color: 'blue', title: 'Email response time: 2.1 hours avg', message: 'Down from 3.4 hours last month. AI draft replies helping you respond 38% faster.', link: '/inbox' },
-    { type: 'info', icon: 'Target', color: 'purple', title: 'Top performer: BioPharm Research', message: 'EUR 70,000 deal value in Lead stage. High-value pharmaceutical client — prioritize outreach.', link: '/clients' },
-    { type: 'info', icon: 'Lightbulb', color: 'blue', title: 'Enable invoice auto-reminders', message: '3 of 5 overdue invoices this quarter could have been caught earlier with automated day-3 reminders.', link: '/automations' },
-    { type: 'info', icon: 'BarChart3', color: 'slate', title: 'Task completion rate: 5%', message: 'Only 1 of 20 tasks completed. 10 overdue. Review task priorities and delegate where possible.', link: '/tasks' },
-  ],
-}
+const DEMO_INSIGHTS = [
+  {
+    type: 'warning',
+    icon: TrendingDown,
+    title: 'Revenue down 18.3% this month',
+    description: 'Feb revenue at €27,600 vs €33,800 in January. CloudFirst and MediaWave invoices still unpaid.',
+    action: 'View Invoices',
+    link: '/invoices',
+  },
+  {
+    type: 'critical',
+    icon: AlertTriangle,
+    title: '2 invoices overdue — €11,700 at risk',
+    description: 'CloudFirst AG (€8,500, 17 days) and MediaWave GmbH (€3,200, 15 days) need immediate follow-up.',
+    action: 'Send Reminders',
+    link: '/invoices',
+  },
+  {
+    type: 'warning',
+    icon: Users,
+    title: '3 stale leads — no contact in 7+ days',
+    description: 'StartupHub Berlin (12d), GreenEnergy AG (9d), EduLearn Platform (8d) need follow-up.',
+    action: 'View Pipeline',
+    link: '/clients',
+  },
+  {
+    type: 'success',
+    icon: TrendingUp,
+    title: 'Top client: FinTech Solutions — €62K ARR',
+    description: 'Highest value account. Quarterly review due in 2 weeks. Consider upsell opportunity.',
+    action: 'View Client',
+    link: '/clients',
+  },
+  {
+    type: 'info',
+    icon: CheckCircle2,
+    title: 'Win rate 80% — above industry average',
+    description: '4 deals won out of 5 closed this quarter. Strongest performance in SaaS and FinTech sectors.',
+    action: 'View Analytics',
+    link: '/analytics',
+  },
+  {
+    type: 'info',
+    icon: Lightbulb,
+    title: 'Automations saved ~15 hours this month',
+    description: 'Invoice reminders, meeting preps, and email classification running automatically.',
+    action: 'View Automations',
+    link: '/automations',
+  },
+]
 
 const PIE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b']
 
@@ -189,8 +227,13 @@ function SectionHeader({ icon: Icon, title }) {
   )
 }
 
-const INSIGHT_ICONS = { TrendingUp, AlertTriangle, CheckCircle2, Mail, Target, Lightbulb, BarChart3, Info }
-const INSIGHT_COLORS = {
+const INSIGHT_TYPE_COLORS = {
+  warning: { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400' },
+  critical: { iconBg: 'bg-red-100 dark:bg-red-900/30', iconText: 'text-red-600 dark:text-red-400' },
+  success: { iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', iconText: 'text-emerald-600 dark:text-emerald-400' },
+  info: { iconBg: 'bg-blue-100 dark:bg-blue-900/30', iconText: 'text-blue-600 dark:text-blue-400' },
+  positive: { iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', iconText: 'text-emerald-600 dark:text-emerald-400' },
+  // Legacy color fallbacks
   green: { iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', iconText: 'text-emerald-600 dark:text-emerald-400' },
   red: { iconBg: 'bg-red-100 dark:bg-red-900/30', iconText: 'text-red-600 dark:text-red-400' },
   amber: { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400' },
@@ -199,9 +242,14 @@ const INSIGHT_COLORS = {
   slate: { iconBg: 'bg-slate-100 dark:bg-slate-700', iconText: 'text-slate-600 dark:text-slate-400' },
 }
 
+const INSIGHT_ICON_MAP = { TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Mail, Target, Lightbulb, BarChart3, Info, Users }
+
 function InsightCard({ insight, onAction }) {
-  const Icon = INSIGHT_ICONS[insight.icon] || Info
-  const colors = INSIGHT_COLORS[insight.color] || INSIGHT_COLORS.blue
+  // Support both component reference (new) and string key (legacy)
+  const Icon = typeof insight.icon === 'string'
+    ? (INSIGHT_ICON_MAP[insight.icon] || Info)
+    : (insight.icon || Info)
+  const colors = INSIGHT_TYPE_COLORS[insight.type] || INSIGHT_TYPE_COLORS[insight.color] || INSIGHT_TYPE_COLORS.info
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
@@ -211,13 +259,13 @@ function InsightCard({ insight, onAction }) {
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="text-sm font-bold text-slate-900 dark:text-white">{insight.title}</h4>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{insight.message}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{insight.description || insight.message}</p>
           {insight.link && (
             <button
               onClick={() => onAction?.(insight.link)}
               className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
             >
-              Take Action <ArrowRight className="h-3 w-3" />
+              {insight.action || 'Take Action'} <ArrowRight className="h-3 w-3" />
             </button>
           )}
         </div>
@@ -575,7 +623,7 @@ export default function Analytics() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {(() => {
               const apiInsights = insightsData?.insights || []
-              const merged = apiInsights.length >= 6 ? apiInsights : DEMO_INSIGHTS.insights
+              const merged = apiInsights.length >= 6 ? apiInsights : DEMO_INSIGHTS
               return merged.map((insight, i) => (
                 <InsightCard key={i} insight={insight} onAction={(path) => navigate(path)} />
               ))

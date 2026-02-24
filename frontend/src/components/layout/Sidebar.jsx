@@ -20,7 +20,7 @@ const navGroups = [
     label: 'MAIN',
     items: [
       { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-      { to: '/inbox', icon: Mail, label: 'Inbox' },
+      { to: '/inbox', icon: Mail, label: 'Inbox', badge: 12 },
       { to: '/calendar', icon: Calendar, label: 'Calendar' },
     ],
   },
@@ -29,7 +29,7 @@ const navGroups = [
     items: [
       { to: '/invoices', icon: Receipt, label: 'Invoices' },
       { to: '/clients', icon: Users, label: 'Clients' },
-      { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
+      { to: '/tasks', icon: CheckSquare, label: 'Tasks', badge: 2 },
     ],
   },
   {
@@ -76,20 +76,30 @@ export default function Sidebar({ collapsed, onToggle }) {
               <div className="my-2 mx-2 border-t border-slate-200 dark:border-slate-700" />
             )}
             <div className="space-y-0.5">
-              {group.items.map(({ to, icon: Icon, label }) => (
+              {group.items.map(({ to, icon: Icon, label, badge }) => (
                 <NavLink
                   key={to}
                   to={to}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    `relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                       isActive
                         ? 'border-l-2 border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                         : 'border-l-2 border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
                     }`
                   }
                 >
-                  <Icon className="h-5 w-5 shrink-0" />
-                  {!collapsed && <span>{label}</span>}
+                  <div className="relative shrink-0">
+                    <Icon className="h-5 w-5" />
+                    {collapsed && badge > 0 && (
+                      <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500" />
+                    )}
+                  </div>
+                  {!collapsed && <span className="flex-1">{label}</span>}
+                  {!collapsed && badge > 0 && (
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-100 px-1 text-[10px] font-bold text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                      {badge}
+                    </span>
+                  )}
                 </NavLink>
               ))}
             </div>

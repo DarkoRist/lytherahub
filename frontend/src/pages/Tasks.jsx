@@ -21,6 +21,8 @@ import {
 import api from '../api/client'
 import toast from 'react-hot-toast'
 import ContextMenu from '../components/shared/ContextMenu'
+import EmptyState from '../components/shared/EmptyState'
+import { useUndoable } from '../hooks/useUndoable'
 
 const COLUMNS = [
   { id: 'todo', label: 'To Do', icon: ListTodo, color: 'bg-slate-500' },
@@ -436,6 +438,7 @@ function TaskDetailPanel({ task, onClose, onStatusChange, onDelete }) {
 }
 
 export default function Tasks() {
+  const { execute: withUndo } = useUndoable()
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -504,14 +507,16 @@ export default function Tasks() {
     }
   }
 
-  const handleDelete = async (taskId) => {
-    setTasks((prev) => prev.filter((t) => t.id !== taskId))
-    toast.success('Task deleted')
-    try {
-      await api.delete(`/tasks/${taskId}`)
-    } catch {
-      // Demo mode: keep local change
-    }
+  const handleDelete = (taskId) => {
+    const deletedTask = tasks.find((t) => t.id === taskId)
+    withUndo({
+      doAction: () => setTasks((prev) => prev.filter((t) => t.id !== taskId)),
+      undoAction: () => {
+        if (deletedTask) setTasks((prev) => [deletedTask, ...prev.filter((t) => t.id !== taskId)])
+      },
+      apiCall: () => api.delete(`/tasks/${taskId}`).catch(() => {}),
+      message: 'Task deleted',
+    })
   }
 
   const handleAdd = async (taskData) => {
@@ -642,20 +647,30 @@ export default function Tasks() {
       </div>
 
       {/* Kanban board */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {COLUMNS.map((col) => (
-          <KanbanColumn
-            key={col.id}
-            column={col}
-            tasks={grouped[col.id] || []}
-            onStatusChange={handleStatusChange}
-            onDelete={handleDelete}
-            onSelect={setSelectedTask}
-            onKbSelect={setKbTask}
-            kbTaskId={kbTask?.id}
-          />
-        ))}
-      </div>
+      {filteredTasks.length === 0 ? (
+        <EmptyState
+          icon={ListTodo}
+          title="No tasks found"
+          description={searchQuery ? 'No tasks match your search.' : 'Add your first task to get started.'}
+          action="Add Task"
+          onAction={() => setShowModal(true)}
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {COLUMNS.map((col) => (
+            <KanbanColumn
+              key={col.id}
+              column={col}
+              tasks={grouped[col.id] || []}
+              onStatusChange={handleStatusChange}
+              onDelete={handleDelete}
+              onSelect={setSelectedTask}
+              onKbSelect={setKbTask}
+              kbTaskId={kbTask?.id}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Add task modal */}
       <AddTaskModal

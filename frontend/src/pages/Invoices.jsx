@@ -14,6 +14,10 @@ import {
   BarChart3,
   LineChart,
   Filter,
+  Eye,
+  Bell,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
 import {
   BarChart,
@@ -30,6 +34,9 @@ import {
 import toast from 'react-hot-toast'
 import api from '../api/client'
 import InvoiceTable from '../components/invoices/InvoiceTable'
+import ContextMenu from '../components/shared/ContextMenu'
+import EmptyState from '../components/shared/EmptyState'
+import { useUndoable } from '../hooks/useUndoable'
 
 // ---------------------------------------------------------------------------
 // Demo data
@@ -95,12 +102,14 @@ function formatCurrency(amount) {
 
 export default function Invoices() {
   const queryClient = useQueryClient()
+  const { execute: withUndo } = useUndoable()
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy] = useState('due_date')
   const [sortDir, setSortDir] = useState('desc')
   const [showAddModal, setShowAddModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [chartMode, setChartMode] = useState('revenue') // 'revenue' | 'forecast'
+  const [ctxMenu, setCtxMenu] = useState(null) // { x, y, invoice }
 
   // Fetch invoices
   const { data: invoices, isLoading } = useQuery({
@@ -232,6 +241,20 @@ export default function Invoices() {
     setSortDir(dir)
   }
 
+  const handleContextMenu = (e, invoice) => {
+    e.preventDefault()
+    setCtxMenu({ x: e.clientX, y: e.clientY, invoice })
+  }
+
+  const ctxMenuItems = (invoice) => [
+    { label: 'View Details', icon: Eye, action: () => handleAction('view', invoice) },
+    ...(invoice.status !== 'paid' ? [{ label: 'Mark as Paid', icon: CheckCircle2, action: () => handleAction('mark_paid', invoice) }] : []),
+    ...(invoice.status !== 'paid' ? [{ label: 'Send Reminder', icon: Bell, action: () => handleAction('remind', invoice) }] : []),
+    'divider',
+    { label: 'Edit Invoice', icon: Pencil, action: () => handleAction('edit', invoice) },
+    { label: 'Delete Invoice', icon: Trash2, action: () => handleAction('delete', invoice), danger: true },
+  ]
+
   const handleAction = (action, invoice) => {
     switch (action) {
       case 'view':
@@ -246,11 +269,26 @@ export default function Invoices() {
       case 'remind':
         sendReminder.mutate(invoice.id)
         break
-      case 'delete':
-        if (window.confirm(`Delete invoice ${invoice.invoice_number}?`)) {
-          deleteInvoice.mutate(invoice.id)
-        }
+      case 'delete': {
+        const deletedInvoice = invoice
+        withUndo({
+          doAction: () => {
+            queryClient.setQueryData(['invoices', statusFilter], (old) => {
+              const current = Array.isArray(old) ? old : DEMO_INVOICES
+              return current.filter((inv) => inv.id !== deletedInvoice.id)
+            })
+          },
+          undoAction: () => {
+            queryClient.setQueryData(['invoices', statusFilter], (old) => {
+              const current = Array.isArray(old) ? old : DEMO_INVOICES
+              return [deletedInvoice, ...current.filter((inv) => inv.id !== deletedInvoice.id)]
+            })
+          },
+          apiCall: () => api.delete(`/invoices/${deletedInvoice.id}`).catch(() => {}),
+          message: `Invoice ${deletedInvoice.invoice_number} deleted`,
+        })
         break
+      }
       default:
         break
     }
@@ -431,15 +469,35 @@ export default function Invoices() {
           ))}
         </div>
 
-        <InvoiceTable
-          invoices={sortedInvoices}
-          loading={isLoading}
-          onAction={handleAction}
-          sortBy={sortBy}
-          sortDir={sortDir}
-          onSort={handleSort}
-        />
+        {sortedInvoices.length === 0 && !isLoading ? (
+          <EmptyState
+            icon={Receipt}
+            title="No invoices found"
+            description={statusFilter !== 'all' ? `No ${statusFilter} invoices.` : 'Create your first invoice to get started.'}
+            action="New Invoice"
+            onAction={() => setShowAddModal(true)}
+          />
+        ) : (
+          <InvoiceTable
+            invoices={sortedInvoices}
+            loading={isLoading}
+            onAction={handleAction}
+            sortBy={sortBy}
+            sortDir={sortDir}
+            onSort={handleSort}
+            onContextMenu={handleContextMenu}
+          />
+        )}
       </div>
+
+      {ctxMenu && (
+        <ContextMenu
+          x={ctxMenu.x}
+          y={ctxMenu.y}
+          items={ctxMenuItems(ctxMenu.invoice)}
+          onClose={() => setCtxMenu(null)}
+        />
+      )}
 
       {/* Add Invoice Modal */}
       {showAddModal && (

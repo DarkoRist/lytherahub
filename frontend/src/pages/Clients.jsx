@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import ContextMenu from '../components/shared/ContextMenu'
+import EmptyState from '../components/shared/EmptyState'
+import { useUndoable } from '../hooks/useUndoable'
 import {
   Plus,
   Search,
@@ -79,6 +81,7 @@ const DEMO_CLIENTS = [
 
 export default function Clients() {
   const queryClient = useQueryClient()
+  const { execute: withUndo } = useUndoable()
   const [viewMode, setViewMode] = useState('pipeline')
   const [search, setSearch] = useState('')
   const [selectedClient, setSelectedClient] = useState(null)
@@ -213,6 +216,30 @@ export default function Clients() {
     )
   }, [clients, search])
 
+  const handleClientDelete = (id) => {
+    const current = queryClient.getQueryData(['clients'])
+    const all = Array.isArray(current) ? current : DEMO_CLIENTS
+    const deletedClient = all.find((c) => c.id === id)
+    withUndo({
+      doAction: () => {
+        queryClient.setQueryData(['clients'], (old) => {
+          const arr = Array.isArray(old) ? old : DEMO_CLIENTS
+          return arr.filter((c) => c.id !== id)
+        })
+      },
+      undoAction: () => {
+        if (deletedClient) {
+          queryClient.setQueryData(['clients'], (old) => {
+            const arr = Array.isArray(old) ? old : DEMO_CLIENTS
+            return [deletedClient, ...arr.filter((c) => c.id !== id)]
+          })
+        }
+      },
+      apiCall: () => api.delete(`/clients/${id}`).catch(() => {}),
+      message: 'Client deleted',
+    })
+  }
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -292,7 +319,7 @@ export default function Clients() {
           clients={filteredClients}
           onClientClick={setSelectedClient}
           onStageChange={(id, stage) => updateStage.mutate({ id, stage })}
-          onClientDelete={(id) => deleteClient.mutate(id)}
+          onClientDelete={handleClientDelete}
           onClientEnrich={(id) => enrichClient.mutate(id)}
         />
       ) : (
@@ -438,11 +465,11 @@ function PipelineBoard({ clients, onClientClick, onStageChange, onClientDelete, 
 function ClientTable({ clients, loading, onClientClick }) {
   if (!loading && clients.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-16 dark:border-slate-700 dark:bg-slate-800">
-        <Users className="h-12 w-12 text-slate-300 dark:text-slate-600" />
-        <h3 className="mt-4 text-base font-semibold text-slate-800 dark:text-white">No clients found</h3>
-        <p className="mt-1 text-sm text-slate-500">Add your first client to get started.</p>
-      </div>
+      <EmptyState
+        icon={Users}
+        title="No clients found"
+        description="Add your first client to get started."
+      />
     )
   }
 

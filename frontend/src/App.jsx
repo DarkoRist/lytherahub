@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Routes, Route, useNavigate } from 'react-router-dom'
 import { X } from 'lucide-react'
 import ProtectedRoute from './auth/ProtectedRoute'
 import Layout from './components/layout/Layout'
+import CommandPalette from './components/shared/CommandPalette'
 import OnboardingWizard from './components/onboarding/OnboardingWizard'
 
 import LoginPage from './auth/LoginPage'
@@ -21,16 +22,16 @@ import PrivacyPolicy from './pages/legal/PrivacyPolicy'
 import TermsOfService from './pages/legal/TermsOfService'
 import CookiePolicy from './pages/legal/CookiePolicy'
 
-function AppLayout({ children }) {
+function AppLayout({ children, onOpenPalette }) {
   return (
     <ProtectedRoute>
-      <Layout>{children}</Layout>
+      <Layout onOpenPalette={onOpenPalette}>{children}</Layout>
     </ProtectedRoute>
   )
 }
 
 const SHORTCUTS = [
-  { key: '⌘K', desc: 'Focus command bar' },
+  { key: '⌘K', desc: 'Open command palette' },
   { key: 'G D', desc: 'Go to Dashboard' },
   { key: 'G I', desc: 'Go to Inbox' },
   { key: 'G C', desc: 'Go to Calendar' },
@@ -45,13 +46,21 @@ const SHORTCUTS = [
 function App() {
   const navigate = useNavigate()
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [paletteOpen, setPaletteOpen] = useState(false)
 
   useEffect(() => {
     let lastKey = ''
     const handleKey = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
+
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setPaletteOpen((prev) => !prev)
+        return
+      }
+
       if (e.key === '?') { setShowShortcuts(true); return }
-      if (e.key === 'Escape') { setShowShortcuts(false); return }
+      if (e.key === 'Escape') { setShowShortcuts(false); setPaletteOpen(false); return }
 
       if (lastKey === 'g') {
         const navMap = { d: '/dashboard', i: '/inbox', c: '/calendar', v: '/invoices', p: '/clients', t: '/tasks', r: '/reports' }
@@ -64,6 +73,8 @@ function App() {
     return () => document.removeEventListener('keydown', handleKey)
   }, [navigate])
 
+  const handleOpenPalette = useCallback(() => setPaletteOpen(true), [])
+
   return (
     <>
       <Routes>
@@ -73,16 +84,16 @@ function App() {
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/cookies" element={<CookiePolicy />} />
         <Route path="/onboarding" element={<ProtectedRoute><OnboardingWizard /></ProtectedRoute>} />
-        <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
-        <Route path="/inbox" element={<AppLayout><Inbox /></AppLayout>} />
-        <Route path="/calendar" element={<AppLayout><Calendar /></AppLayout>} />
-        <Route path="/invoices" element={<AppLayout><Invoices /></AppLayout>} />
-        <Route path="/clients" element={<AppLayout><Clients /></AppLayout>} />
-        <Route path="/tasks" element={<AppLayout><Tasks /></AppLayout>} />
-        <Route path="/reports" element={<AppLayout><Reports /></AppLayout>} />
-        <Route path="/analytics" element={<AppLayout><Analytics /></AppLayout>} />
-        <Route path="/automations" element={<AppLayout><Automations /></AppLayout>} />
-        <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
+        <Route path="/dashboard" element={<AppLayout onOpenPalette={handleOpenPalette}><Dashboard /></AppLayout>} />
+        <Route path="/inbox" element={<AppLayout onOpenPalette={handleOpenPalette}><Inbox /></AppLayout>} />
+        <Route path="/calendar" element={<AppLayout onOpenPalette={handleOpenPalette}><Calendar /></AppLayout>} />
+        <Route path="/invoices" element={<AppLayout onOpenPalette={handleOpenPalette}><Invoices /></AppLayout>} />
+        <Route path="/clients" element={<AppLayout onOpenPalette={handleOpenPalette}><Clients /></AppLayout>} />
+        <Route path="/tasks" element={<AppLayout onOpenPalette={handleOpenPalette}><Tasks /></AppLayout>} />
+        <Route path="/reports" element={<AppLayout onOpenPalette={handleOpenPalette}><Reports /></AppLayout>} />
+        <Route path="/analytics" element={<AppLayout onOpenPalette={handleOpenPalette}><Analytics /></AppLayout>} />
+        <Route path="/automations" element={<AppLayout onOpenPalette={handleOpenPalette}><Automations /></AppLayout>} />
+        <Route path="/settings" element={<AppLayout onOpenPalette={handleOpenPalette}><Settings /></AppLayout>} />
       </Routes>
 
       {showShortcuts && (
@@ -113,6 +124,9 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Global command palette — wired here so it works from every page */}
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </>
   )
 }

@@ -11,7 +11,6 @@ import {
   Trash2,
   Receipt,
 } from 'lucide-react'
-import ContextMenu from '../shared/ContextMenu'
 
 function StatusBadge({ status }) {
   const config = {
@@ -175,23 +174,8 @@ export default function InvoiceTable({
   sortBy = 'due_date',
   sortDir = 'desc',
   onSort,
+  onContextMenu,
 }) {
-  const [ctxMenu, setCtxMenu] = useState(null) // { x, y, invoice }
-
-  const handleContextMenu = (e, invoice) => {
-    e.preventDefault()
-    setCtxMenu({ x: e.clientX, y: e.clientY, invoice })
-  }
-
-  const ctxItems = (invoice) => [
-    { label: 'View Details', icon: Eye, action: () => onAction('view', invoice) },
-    ...(invoice.status !== 'paid' ? [{ label: 'Mark as Paid', icon: CheckCircle2, action: () => onAction('mark_paid', invoice) }] : []),
-    ...(invoice.status !== 'paid' ? [{ label: 'Send Reminder', icon: Bell, action: () => onAction('remind', invoice) }] : []),
-    'divider',
-    { label: 'Edit Invoice', icon: Pencil, action: () => onAction('edit', invoice) },
-    { label: 'Delete Invoice', icon: Trash2, action: () => onAction('delete', invoice), danger: true },
-  ]
-
   function handleSort(key) {
     if (onSort) {
       onSort(key, sortBy === key && sortDir === 'asc' ? 'desc' : 'asc')
@@ -254,7 +238,7 @@ export default function InvoiceTable({
             : invoices.map((inv) => (
                 <tr
                   key={inv.id}
-                  onContextMenu={(e) => handleContextMenu(e, inv)}
+                  onContextMenu={onContextMenu ? (e) => onContextMenu(e, inv) : undefined}
                   className="border-b border-slate-100 transition-colors hover:bg-slate-50/50 dark:border-slate-700/50 dark:hover:bg-slate-700/30"
                 >
                   <td className="px-4 py-3.5 font-medium text-slate-900 dark:text-white">
@@ -282,15 +266,6 @@ export default function InvoiceTable({
         </tbody>
       </table>
     </div>
-
-    {ctxMenu && (
-      <ContextMenu
-        x={ctxMenu.x}
-        y={ctxMenu.y}
-        items={ctxItems(ctxMenu.invoice)}
-        onClose={() => setCtxMenu(null)}
-      />
-    )}
     </>
   )
 }

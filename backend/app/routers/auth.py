@@ -3,7 +3,7 @@
 import json
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,6 +20,7 @@ from app.auth.jwt_handler import (
     verify_token,
 )
 from app.config import settings
+from app.main import limiter
 from app.models.database import User, get_db
 from app.models.schemas import UserResponse
 
@@ -32,7 +33,8 @@ DEMO_USER_NAME = "Darko (Demo)"
 
 
 @router.get("/google")
-async def google_login():
+@limiter.limit("20/minute")
+async def google_login(request: Request):
     """Redirect to Google OAuth consent screen."""
     if not settings.GOOGLE_CLIENT_ID:
         raise HTTPException(
@@ -81,7 +83,7 @@ async def google_callback(
     refresh_token = create_refresh_token(user.id)
 
     # Redirect to frontend — onboarding for new users, dashboard for returning
-    frontend_url = settings.ALLOWED_ORIGINS.split(",")[0]
+    frontend_url = settings.cors_origins[0]
     destination = "/dashboard" if user.onboarding_completed else "/onboarding"
     return RedirectResponse(
         url=f"{frontend_url}{destination}?token={access_token}&refresh={refresh_token}"
@@ -89,7 +91,9 @@ async def google_callback(
 
 
 @router.post("/refresh")
+@limiter.limit("30/minute")
 async def refresh_access_token(
+    request: Request,
     refresh_token: str,
     db: AsyncSession = Depends(get_db),
 ):
@@ -124,7 +128,8 @@ async def logout():
 
 
 @router.get("/demo")
-async def demo_login(db: AsyncSession = Depends(get_db)):
+@limiter.limit("20/minute")
+async def demo_login(request: Request, db: AsyncSession = Depends(get_db)):
     """Instant demo login — no Google OAuth needed. Seeds demo data on first call."""
     from app.demo_seeder import seed_demo_data
 

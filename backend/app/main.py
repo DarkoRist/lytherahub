@@ -1,13 +1,32 @@
 """LytheraHub AI — FastAPI application entry point."""
 
 import json
+import logging
 from contextlib import asynccontextmanager
 from typing import Dict, Set
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Rate limiter (shared across all routers via app.state.limiter)
+# ---------------------------------------------------------------------------
+
+limiter = Limiter(key_func=get_remote_address)
+
+
+# ---------------------------------------------------------------------------
+# WebSocket connection manager
+# ---------------------------------------------------------------------------
 
 
 class ConnectionManager:
@@ -76,18 +95,51 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS
-origins = [o.strip() for o in settings.ALLOWED_ORIGINS.split(",")]
+# ---------------------------------------------------------------------------
+# SlowAPI rate limiter state
+# ---------------------------------------------------------------------------
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# ---------------------------------------------------------------------------
+# CORS — strictly locked to configured origins, no wildcards
+# ---------------------------------------------------------------------------
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
+    expose_headers=["X-Total-Count"],
+    max_age=3600,
 )
 
+# ---------------------------------------------------------------------------
+# Security headers middleware
+# ---------------------------------------------------------------------------
 
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        if request.url.scheme == "https":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
+
+# ---------------------------------------------------------------------------
 # Routers
+# ---------------------------------------------------------------------------
+
 from app.routers.auth import router as auth_router
 from app.routers.dashboard import router as dashboard_router
 from app.routers.emails import router as emails_router
@@ -122,6 +174,24 @@ app.include_router(tasks_router)
 app.include_router(analytics_router)
 app.include_router(onboarding_router)
 
+# ---------------------------------------------------------------------------
+# Global exception handler — prevents stack trace leaks
+# ---------------------------------------------------------------------------
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An internal error occurred. Please try again."},
+    )
+
+
+# ---------------------------------------------------------------------------
+# Health check
+# ---------------------------------------------------------------------------
+
 
 @app.get("/health")
 async def health_check():
@@ -134,6 +204,11 @@ async def health_check():
     }
 
 
+# ---------------------------------------------------------------------------
+# WebSocket
+# ---------------------------------------------------------------------------
+
+
 @app.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
     """WebSocket endpoint for real-time updates."""
@@ -141,7 +216,6 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
     try:
         while True:
             data = await websocket.receive_text()
-            # Echo back for now; handlers will be added later
             await websocket.send_json({"type": "pong", "data": json.loads(data)})
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket, user_id)

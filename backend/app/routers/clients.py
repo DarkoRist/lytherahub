@@ -4,11 +4,12 @@ import logging
 import math
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user
+from app.main import limiter
 from app.models.database import Client, User, get_db
 from app.models.schemas import (
     ClientCreate,
@@ -122,7 +123,9 @@ async def get_stale_leads(
 
 
 @router.get("", response_model=PaginatedResponse)
+@limiter.limit("100/minute")
 async def list_clients(
+    request: Request,
     stage: str | None = Query(None, description="Filter by pipeline stage"),
     industry: str | None = Query(None, description="Filter by industry"),
     search: str | None = Query(None, description="Search company name, contact name, or email"),

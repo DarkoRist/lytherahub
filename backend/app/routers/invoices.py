@@ -4,11 +4,12 @@ import logging
 import math
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user
+from app.main import limiter
 from app.models.database import Client, Invoice, User, get_db
 from app.models.schemas import (
     CashFlowForecastResponse,
@@ -169,7 +170,9 @@ async def get_cashflow_forecast(
 
 
 @router.get("", response_model=PaginatedResponse)
+@limiter.limit("100/minute")
 async def list_invoices(
+    request: Request,
     status_filter: str | None = Query(None, alias="status", description="Filter by status"),
     client_id: str | None = Query(None, description="Filter by client ID"),
     from_date: str | None = Query(None, description="Issued after YYYY-MM-DD"),
@@ -355,11 +358,14 @@ async def send_reminder(
             detail="Reminders can only be sent for sent or overdue invoices",
         )
 
-    # Determine client name
+    # Determine client name — filter by user_id for defense in depth
     client_name = "Valued Customer"
     if invoice.client_id:
         client_result = await db.execute(
-            select(Client).where(Client.id == invoice.client_id)
+            select(Client).where(
+                Client.id == invoice.client_id,
+                Client.user_id == user.id,
+            )
         )
         client = client_result.scalar_one_or_none()
         if client:

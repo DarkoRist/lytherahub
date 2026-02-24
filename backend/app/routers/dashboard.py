@@ -2,11 +2,12 @@
 
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user
+from app.main import limiter
 from app.models.database import (
     ActivityLog,
     Alert,
@@ -156,7 +157,9 @@ async def get_morning_briefing(
 
 
 @router.post("/command", response_model=CommandBarResponse)
+@limiter.limit("30/minute")
 async def process_command(
+    request: Request,
     body: CommandBarRequest,
     user: User = Depends(get_current_user),
 ):

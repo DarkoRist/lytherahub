@@ -3,11 +3,12 @@
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, Request
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user
+from app.main import limiter
 from app.models.database import User, get_db
 from app.services import chat_service
 
@@ -15,9 +16,9 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str = Field(..., min_length=1, max_length=2000)
     session_id: Optional[str] = None
-    page_context: Optional[str] = None
+    page_context: Optional[str] = Field(None, max_length=100)
 
 
 class ChatResponse(BaseModel):
@@ -28,7 +29,9 @@ class ChatResponse(BaseModel):
 
 
 @router.post("", response_model=ChatResponse)
+@limiter.limit("30/minute")
 async def send_chat_message(
+    request: Request,
     body: ChatRequest,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),

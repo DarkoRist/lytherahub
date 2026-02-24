@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 # ---------------------------------------------------------------------------
@@ -25,11 +25,11 @@ class PaginatedResponse(BaseModel):
 
 
 class UserBase(BaseModel):
-    email: str
-    name: str
-    picture: Optional[str] = None
-    plan: str = "free"
-    timezone: str = "Europe/Berlin"
+    email: str = Field(..., max_length=254)
+    name: str = Field(..., max_length=200)
+    picture: Optional[str] = Field(None, max_length=500)
+    plan: str = Field("free", max_length=50)
+    timezone: str = Field("Europe/Berlin", max_length=100)
 
 
 class UserCreate(UserBase):
@@ -45,10 +45,10 @@ class UserResponse(UserBase):
 
 
 class UserUpdate(BaseModel):
-    name: Optional[str] = None
-    picture: Optional[str] = None
-    timezone: Optional[str] = None
-    plan: Optional[str] = None
+    name: Optional[str] = Field(None, max_length=200)
+    picture: Optional[str] = Field(None, max_length=500)
+    timezone: Optional[str] = Field(None, max_length=100)
+    plan: Optional[str] = Field(None, max_length=50)
     onboarding_completed: Optional[bool] = None
 
 
@@ -58,18 +58,18 @@ class UserUpdate(BaseModel):
 
 
 class EmailBase(BaseModel):
-    from_addr: str
-    to_addr: str
-    subject: str
-    snippet: Optional[str] = None
-    body_preview: Optional[str] = None
+    from_addr: str = Field(..., max_length=254)
+    to_addr: str = Field(..., max_length=254)
+    subject: str = Field(..., max_length=500)
+    snippet: Optional[str] = Field(None, max_length=500)
+    body_preview: Optional[str] = Field(None, max_length=5000)
     received_at: datetime
 
 
 class EmailCreate(EmailBase):
-    gmail_id: Optional[str] = None
-    category: Optional[str] = None
-    ai_summary: Optional[str] = None
+    gmail_id: Optional[str] = Field(None, max_length=200)
+    category: Optional[str] = Field(None, max_length=50)
+    ai_summary: Optional[str] = Field(None, max_length=2000)
 
 
 class EmailResponse(EmailBase):
@@ -113,17 +113,17 @@ class EmailStatsResponse(BaseModel):
 
 
 class CalendarEventBase(BaseModel):
-    title: str
-    description: Optional[str] = None
+    title: str = Field(..., max_length=500)
+    description: Optional[str] = Field(None, max_length=5000)
     start_time: datetime
     end_time: datetime
-    location: Optional[str] = None
+    location: Optional[str] = Field(None, max_length=500)
     attendees: Optional[list[dict]] = None
     is_meeting: bool = True
 
 
 class CalendarEventCreate(CalendarEventBase):
-    google_event_id: Optional[str] = None
+    google_event_id: Optional[str] = Field(None, max_length=200)
 
 
 class CalendarEventResponse(CalendarEventBase):
@@ -138,11 +138,11 @@ class CalendarEventResponse(CalendarEventBase):
 
 
 class CalendarEventUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
+    title: Optional[str] = Field(None, max_length=500)
+    description: Optional[str] = Field(None, max_length=5000)
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
-    location: Optional[str] = None
+    location: Optional[str] = Field(None, max_length=500)
     attendees: Optional[list[dict]] = None
 
 
@@ -158,16 +158,16 @@ class FreeSlotResponse(BaseModel):
 
 
 class ClientBase(BaseModel):
-    company_name: str
-    contact_name: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    website: Optional[str] = None
-    industry: Optional[str] = None
-    location: Optional[str] = None
-    pipeline_stage: str = "lead"
+    company_name: str = Field(..., max_length=200)
+    contact_name: Optional[str] = Field(None, max_length=200)
+    email: Optional[str] = Field(None, max_length=254)
+    phone: Optional[str] = Field(None, max_length=50)
+    website: Optional[str] = Field(None, max_length=500)
+    industry: Optional[str] = Field(None, max_length=100)
+    location: Optional[str] = Field(None, max_length=200)
+    pipeline_stage: str = Field("lead", max_length=50)
     deal_value: Optional[float] = None
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, max_length=5000)
 
 
 class ClientCreate(ClientBase):
@@ -186,20 +186,20 @@ class ClientResponse(ClientBase):
 
 
 class ClientUpdate(BaseModel):
-    company_name: Optional[str] = None
-    contact_name: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    website: Optional[str] = None
-    industry: Optional[str] = None
-    location: Optional[str] = None
-    pipeline_stage: Optional[str] = None
+    company_name: Optional[str] = Field(None, max_length=200)
+    contact_name: Optional[str] = Field(None, max_length=200)
+    email: Optional[str] = Field(None, max_length=254)
+    phone: Optional[str] = Field(None, max_length=50)
+    website: Optional[str] = Field(None, max_length=500)
+    industry: Optional[str] = Field(None, max_length=100)
+    location: Optional[str] = Field(None, max_length=200)
+    pipeline_stage: Optional[str] = Field(None, max_length=50)
     deal_value: Optional[float] = None
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, max_length=5000)
 
 
 class PipelineStageUpdate(BaseModel):
-    pipeline_stage: str
+    pipeline_stage: str = Field(..., max_length=50)
 
 
 class PipelineResponse(BaseModel):
@@ -215,13 +215,13 @@ class PipelineResponse(BaseModel):
 
 
 class InvoiceBase(BaseModel):
-    invoice_number: str
+    invoice_number: str = Field(..., max_length=100)
     amount: float
-    currency: str = "EUR"
-    status: str = "draft"
+    currency: str = Field("EUR", max_length=10)
+    status: str = Field("draft", max_length=50)
     issued_date: datetime
     due_date: datetime
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, max_length=5000)
 
 
 class InvoiceCreate(InvoiceBase):
@@ -242,10 +242,10 @@ class InvoiceResponse(InvoiceBase):
 
 class InvoiceUpdate(BaseModel):
     amount: Optional[float] = None
-    status: Optional[str] = None
+    status: Optional[str] = Field(None, max_length=50)
     due_date: Optional[datetime] = None
     paid_date: Optional[datetime] = None
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, max_length=5000)
 
 
 class InvoiceStatsResponse(BaseModel):
@@ -269,16 +269,16 @@ class CashFlowForecastResponse(BaseModel):
 
 
 class TaskBase(BaseModel):
-    title: str
-    description: Optional[str] = None
-    priority: str = "medium"
-    status: str = "todo"
+    title: str = Field(..., max_length=500)
+    description: Optional[str] = Field(None, max_length=5000)
+    priority: str = Field("medium", max_length=50)
+    status: str = Field("todo", max_length=50)
     due_date: Optional[datetime] = None
 
 
 class TaskCreate(TaskBase):
     client_id: Optional[str] = None
-    source: str = "manual"
+    source: str = Field("manual", max_length=50)
 
 
 class TaskResponse(TaskBase):
@@ -293,10 +293,10 @@ class TaskResponse(TaskBase):
 
 
 class TaskUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    priority: Optional[str] = None
-    status: Optional[str] = None
+    title: Optional[str] = Field(None, max_length=500)
+    description: Optional[str] = Field(None, max_length=5000)
+    priority: Optional[str] = Field(None, max_length=50)
+    status: Optional[str] = Field(None, max_length=50)
     due_date: Optional[datetime] = None
 
 
@@ -306,14 +306,14 @@ class TaskUpdate(BaseModel):
 
 
 class AlertBase(BaseModel):
-    type: str
-    title: str
-    message: str
-    severity: str = "info"
+    type: str = Field(..., max_length=100)
+    title: str = Field(..., max_length=300)
+    message: str = Field(..., max_length=2000)
+    severity: str = Field("info", max_length=50)
 
 
 class AlertCreate(AlertBase):
-    related_entity_type: Optional[str] = None
+    related_entity_type: Optional[str] = Field(None, max_length=100)
     related_entity_id: Optional[str] = None
 
 
@@ -341,13 +341,13 @@ class AlertCountResponse(BaseModel):
 
 
 class AutomationBase(BaseModel):
-    name: str
-    description: Optional[str] = None
-    trigger_type: str = "manual"
+    name: str = Field(..., max_length=200)
+    description: Optional[str] = Field(None, max_length=1000)
+    trigger_type: str = Field("manual", max_length=50)
 
 
 class AutomationCreate(AutomationBase):
-    n8n_workflow_id: Optional[str] = None
+    n8n_workflow_id: Optional[str] = Field(None, max_length=200)
 
 
 class AutomationResponse(AutomationBase):
@@ -372,8 +372,8 @@ class AutomationToggle(BaseModel):
 
 
 class ReportBase(BaseModel):
-    type: str  # daily / weekly / monthly
-    title: str
+    type: str = Field(..., max_length=50)  # daily / weekly / monthly
+    title: str = Field(..., max_length=300)
     period_start: datetime
     period_end: datetime
 
@@ -434,7 +434,7 @@ class MorningBriefingResponse(BaseModel):
 
 
 class CommandBarRequest(BaseModel):
-    command: str
+    command: str = Field(..., min_length=1, max_length=500)
 
 
 class CommandBarResponse(BaseModel):

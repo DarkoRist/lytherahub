@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     PORT: int = 8000
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
 
+    @property
+    def cors_origins(self) -> list[str]:
+        origins = [o.strip() for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]
+        return origins
+
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./lytherahub.db"
     DB_ECHO: bool = False

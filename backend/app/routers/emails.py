@@ -4,11 +4,12 @@ import logging
 import math
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user
+from app.main import limiter
 from app.models.database import Email, User, get_db
 from app.models.schemas import (
     EmailClassifyResponse,
@@ -80,7 +81,9 @@ async def get_email_stats(
 
 
 @router.get("", response_model=PaginatedResponse)
+@limiter.limit("100/minute")
 async def list_emails(
+    request: Request,
     category: str | None = Query(None, description="Filter by category"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),

@@ -10,7 +10,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user
 from app.main import limiter
-from app.models.database import Client, Invoice, User, get_db
+from app.models.database import Company, Invoice, User, get_db
+
+# backward compat alias
+Client = Company
 from app.models.schemas import (
     CashFlowForecastResponse,
     InvoiceCreate,
@@ -188,7 +191,7 @@ async def list_invoices(
     if status_filter:
         query = query.where(Invoice.status == status_filter)
     if client_id:
-        query = query.where(Invoice.client_id == client_id)
+        query = query.where(Invoice.company_id == client_id)
     if from_date:
         try:
             from_dt = datetime.strptime(from_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
@@ -242,23 +245,9 @@ async def create_invoice(
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new invoice."""
-    # Validate client ownership if client_id provided
-    if payload.client_id:
-        client_result = await db.execute(
-            select(Client).where(
-                Client.id == payload.client_id,
-                Client.user_id == user.id,
-            )
-        )
-        if client_result.scalar_one_or_none() is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Client not found",
-            )
-
     invoice = Invoice(
         user_id=user.id,
-        client_id=payload.client_id,
+        company_id=payload.company_id,
         invoice_number=payload.invoice_number,
         amount=payload.amount,
         currency=payload.currency,
@@ -358,14 +347,11 @@ async def send_reminder(
             detail="Reminders can only be sent for sent or overdue invoices",
         )
 
-    # Determine client name — filter by user_id for defense in depth
+    # Determine client name
     client_name = "Valued Customer"
-    if invoice.client_id:
+    if invoice.company_id:
         client_result = await db.execute(
-            select(Client).where(
-                Client.id == invoice.client_id,
-                Client.user_id == user.id,
-            )
+            select(Client).where(Client.id == invoice.company_id)
         )
         client = client_result.scalar_one_or_none()
         if client:

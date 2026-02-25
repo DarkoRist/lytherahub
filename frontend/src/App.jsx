@@ -18,6 +18,13 @@ import Reports from './pages/Reports'
 import Analytics from './pages/Analytics'
 import Automations from './pages/Automations'
 import Settings from './pages/Settings'
+import Signals from './pages/Signals'
+import Contacts from './pages/Contacts'
+import Deals from './pages/Deals'
+import Products from './pages/Products'
+import Inventory from './pages/Inventory'
+import SalesOrders from './pages/SalesOrders'
+import PurchaseOrders from './pages/PurchaseOrders'
 import PrivacyPolicy from './pages/legal/PrivacyPolicy'
 import TermsOfService from './pages/legal/TermsOfService'
 import CookiePolicy from './pages/legal/CookiePolicy'
@@ -94,6 +101,13 @@ function App() {
         <Route path="/analytics" element={<AppLayout onOpenPalette={handleOpenPalette}><Analytics /></AppLayout>} />
         <Route path="/automations" element={<AppLayout onOpenPalette={handleOpenPalette}><Automations /></AppLayout>} />
         <Route path="/settings" element={<AppLayout onOpenPalette={handleOpenPalette}><Settings /></AppLayout>} />
+        <Route path="/contacts" element={<AppLayout onOpenPalette={handleOpenPalette}><Contacts /></AppLayout>} />
+        <Route path="/deals" element={<AppLayout onOpenPalette={handleOpenPalette}><Deals /></AppLayout>} />
+        <Route path="/products" element={<AppLayout onOpenPalette={handleOpenPalette}><Products /></AppLayout>} />
+        <Route path="/inventory" element={<AppLayout onOpenPalette={handleOpenPalette}><Inventory /></AppLayout>} />
+        <Route path="/sales-orders" element={<AppLayout onOpenPalette={handleOpenPalette}><SalesOrders /></AppLayout>} />
+        <Route path="/purchase-orders" element={<AppLayout onOpenPalette={handleOpenPalette}><PurchaseOrders /></AppLayout>} />
+        <Route path="/signals" element={<AppLayout onOpenPalette={handleOpenPalette}><Signals /></AppLayout>} />
       </Routes>
 
       {showShortcuts && (

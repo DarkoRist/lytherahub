@@ -12,11 +12,12 @@ from app.models.database import (
     ActivityLog,
     Alert,
     CalendarEvent,
-    Client,
+    Company,
     Email,
     Invoice,
     Task,
     User,
+    Workspace,
     get_db,
 )
 from app.models.schemas import (
@@ -69,14 +70,19 @@ async def get_dashboard_stats(
         )
     )).scalar() or 0
 
-    clients = (await db.execute(
-        select(func.count()).select_from(
-            select(Client).where(
-                Client.user_id == uid,
-                Client.pipeline_stage.notin_(["lost"]),
-            ).subquery()
-        )
-    )).scalar() or 0
+    # Get workspace_id for company queries
+    ws_result = await db.execute(select(Workspace.id).where(Workspace.owner_id == uid))
+    workspace_id = ws_result.scalar_one_or_none()
+    clients = 0
+    if workspace_id:
+        clients = (await db.execute(
+            select(func.count()).select_from(
+                select(Company).where(
+                    Company.workspace_id == workspace_id,
+                    Company.pipeline_stage.notin_(["lost"]),
+                ).subquery()
+            )
+        )).scalar() or 0
 
     tasks = (await db.execute(
         select(func.count()).select_from(

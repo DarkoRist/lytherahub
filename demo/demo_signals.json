@@ -1,0 +1,68 @@
+[
+  {
+    "id": "signal-001",
+    "signal_type": "overdue_invoice",
+    "severity": "critical",
+    "entity_type": "invoice",
+    "entity_id": "inv-001",
+    "title": "Invoice INV-001 overdue by 17 days",
+    "body": "Amount: €8,500 EUR. Due: 08 Feb 2026. Customer: CloudTech AG.",
+    "is_read": false,
+    "is_dismissed": false
+  },
+  {
+    "id": "signal-002",
+    "signal_type": "low_stock",
+    "severity": "warning",
+    "entity_type": "product",
+    "entity_id": "product-003",
+    "title": "Low stock: Wireless Keyboard Pro",
+    "body": "On hand: 2 pcs. Reorder level: 10. Consider placing a purchase order.",
+    "is_read": false,
+    "is_dismissed": false
+  },
+  {
+    "id": "signal-003",
+    "signal_type": "stale_deal",
+    "severity": "warning",
+    "entity_type": "deal",
+    "entity_id": "deal-002",
+    "title": "Deal stale: MediaHub Berlin — Content Management Suite",
+    "body": "No activity in 15 days. Stage: proposal. Follow up to keep momentum.",
+    "is_read": false,
+    "is_dismissed": false
+  },
+  {
+    "id": "signal-004",
+    "signal_type": "late_delivery",
+    "severity": "warning",
+    "entity_type": "purchase_order",
+    "entity_id": "po-001",
+    "title": "Late delivery: PO-0001",
+    "body": "Expected 20 Jan 2026 (36 days overdue). Status: sent. Contact supplier.",
+    "is_read": true,
+    "is_dismissed": false
+  },
+  {
+    "id": "signal-005",
+    "signal_type": "stale_company",
+    "severity": "info",
+    "entity_type": "company",
+    "entity_id": "company-005",
+    "title": "No follow-up: StartupX Berlin",
+    "body": "Still in lead stage after 32 days. Consider scheduling a discovery call.",
+    "is_read": false,
+    "is_dismissed": false
+  },
+  {
+    "id": "signal-006",
+    "signal_type": "low_stock",
+    "severity": "critical",
+    "entity_type": "product",
+    "entity_id": "product-007",
+    "title": "Out of stock: USB-C Hub 7-Port",
+    "body": "On hand: 0 pcs. Reorder level: 5. Immediate reorder required.",
+    "is_read": false,
+    "is_dismissed": false
+  }
+]

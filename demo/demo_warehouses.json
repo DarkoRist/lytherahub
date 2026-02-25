@@ -1,0 +1,16 @@
+[
+  {
+    "id": "warehouse-001",
+    "workspace_id": "demo-workspace-001",
+    "name": "Main Warehouse",
+    "location": "Berlin, Germany",
+    "is_default": true
+  },
+  {
+    "id": "warehouse-002",
+    "workspace_id": "demo-workspace-001",
+    "name": "Secondary Storage",
+    "location": "Hamburg, Germany",
+    "is_default": false
+  }
+]

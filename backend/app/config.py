@@ -27,7 +27,7 @@ class Settings(BaseSettings):
         return origins
 
     # Database
-    DATABASE_URL: str = "sqlite+aiosqlite:///./lytherahub.db"
+    DATABASE_URL: str = "postgresql+asyncpg://lytherahub:lytherahub_secret@localhost:5432/lytherahub"
     DB_ECHO: bool = False
 
     # Redis

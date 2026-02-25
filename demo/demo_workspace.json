@@ -1,0 +1,8 @@
+{
+  "id": "demo-workspace-001",
+  "name": "Lythera Demo Co.",
+  "slug": "demo-co",
+  "owner_id": "demo-user-001",
+  "default_currency": "EUR",
+  "tax_rate": 19.0
+}

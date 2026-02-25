@@ -1,0 +1,50 @@
+[
+  {
+    "id": "poi-001",
+    "order_id": "po-001",
+    "product_id": "product-001",
+    "quantity_ordered": 60,
+    "quantity_received": 60,
+    "unit_cost": 28.5
+  },
+  {
+    "id": "poi-002",
+    "order_id": "po-001",
+    "product_id": "product-002",
+    "quantity_ordered": 40,
+    "quantity_received": 40,
+    "unit_cost": 34.0
+  },
+  {
+    "id": "poi-003",
+    "order_id": "po-001",
+    "product_id": "product-003",
+    "quantity_ordered": 25,
+    "quantity_received": 25,
+    "unit_cost": 112.0
+  },
+  {
+    "id": "poi-004",
+    "order_id": "po-002",
+    "product_id": "product-008",
+    "quantity_ordered": 200,
+    "quantity_received": 200,
+    "unit_cost": 4.1
+  },
+  {
+    "id": "poi-005",
+    "order_id": "po-002",
+    "product_id": "product-009",
+    "quantity_ordered": 300,
+    "quantity_received": 300,
+    "unit_cost": 1.2
+  },
+  {
+    "id": "poi-006",
+    "order_id": "po-003",
+    "product_id": "product-001",
+    "quantity_ordered": 50,
+    "quantity_received": 0,
+    "unit_cost": 28.5
+  }
+]

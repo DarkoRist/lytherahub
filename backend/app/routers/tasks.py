@@ -8,7 +8,10 @@ from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user
-from app.models.database import Client, Task, User, get_db
+from app.models.database import Company, Task, User, get_db
+
+# backward compat alias
+Client = Company
 from app.models.schemas import (
     PaginatedResponse,
     TaskCreate,
@@ -120,7 +123,7 @@ async def list_tasks(
     if source:
         query = query.where(Task.source == source)
     if client_id:
-        query = query.where(Task.client_id == client_id)
+        query = query.where(Task.company_id == client_id)
 
     # Count
     count_query = select(func.count()).select_from(query.subquery())
@@ -166,7 +169,7 @@ async def create_task(
     """Create a new task."""
     task = Task(
         user_id=user.id,
-        client_id=body.client_id,
+        company_id=body.company_id,
         title=body.title,
         description=body.description,
         priority=body.priority,

@@ -1,0 +1,92 @@
+[
+  {
+    "id": "soi-001",
+    "order_id": "so-001",
+    "product_id": "product-001",
+    "quantity": 20,
+    "unit_price": 59.99,
+    "discount": 0,
+    "fulfilled_quantity": 20
+  },
+  {
+    "id": "soi-002",
+    "order_id": "so-001",
+    "product_id": "product-003",
+    "quantity": 8,
+    "unit_price": 229.0,
+    "discount": 0,
+    "fulfilled_quantity": 8
+  },
+  {
+    "id": "soi-003",
+    "order_id": "so-001",
+    "product_id": "product-008",
+    "quantity": 40,
+    "unit_price": 9.9,
+    "discount": 0,
+    "fulfilled_quantity": 40
+  },
+  {
+    "id": "soi-004",
+    "order_id": "so-002",
+    "product_id": "product-009",
+    "quantity": 170,
+    "unit_price": 3.5,
+    "discount": 0,
+    "fulfilled_quantity": 170
+  },
+  {
+    "id": "soi-005",
+    "order_id": "so-003",
+    "product_id": "product-002",
+    "quantity": 20,
+    "unit_price": 74.9,
+    "discount": 0,
+    "fulfilled_quantity": 0
+  },
+  {
+    "id": "soi-006",
+    "order_id": "so-003",
+    "product_id": "product-004",
+    "quantity": 60,
+    "unit_price": 21.5,
+    "discount": 0,
+    "fulfilled_quantity": 0
+  },
+  {
+    "id": "soi-007",
+    "order_id": "so-004",
+    "product_id": "product-011",
+    "quantity": 4,
+    "unit_price": 199.0,
+    "discount": 0,
+    "fulfilled_quantity": 0
+  },
+  {
+    "id": "soi-008",
+    "order_id": "so-004",
+    "product_id": "product-012",
+    "quantity": 2,
+    "unit_price": 499.0,
+    "discount": 0,
+    "fulfilled_quantity": 0
+  },
+  {
+    "id": "soi-009",
+    "order_id": "so-005",
+    "product_id": "product-005",
+    "quantity": 30,
+    "unit_price": 14.9,
+    "discount": 0,
+    "fulfilled_quantity": 0
+  },
+  {
+    "id": "soi-010",
+    "order_id": "so-005",
+    "product_id": "product-007",
+    "quantity": 60,
+    "unit_price": 8.9,
+    "discount": 0,
+    "fulfilled_quantity": 0
+  }
+]

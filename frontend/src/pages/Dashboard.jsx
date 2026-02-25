@@ -7,8 +7,12 @@ import {
   X,
   Eye,
   ShieldAlert,
+  AlertCircle,
+  ArrowRight,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import api from '../api/client'
+import { signalsApi } from '../api/signals'
 import { useAuth } from '../context/AuthContext'
 import { formatRelativeTime } from '../utils/formatters'
 import toast from 'react-hot-toast'
@@ -230,6 +234,57 @@ function AlertsPanel() {
   )
 }
 
+function SignalsWidget() {
+  const [summary, setSummary] = useState(null)
+
+  useEffect(() => {
+    signalsApi.summary().then((r) => setSummary(r.data)).catch(() => {})
+  }, [])
+
+  if (!summary) return null
+
+  const hasSignals = summary.total > 0
+  return (
+    <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-3 dark:border-slate-700 dark:bg-slate-800">
+      <div className="flex items-center gap-3">
+        <Bell className="h-4 w-4 text-slate-400" />
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Signals</span>
+        {hasSignals ? (
+          <div className="flex items-center gap-2">
+            {summary.critical > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                <AlertCircle className="h-3 w-3" />
+                {summary.critical} critical
+              </span>
+            )}
+            {summary.warning > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                <AlertTriangle className="h-3 w-3" />
+                {summary.warning} warning
+              </span>
+            )}
+            {summary.info > 0 && (
+              <span className="hidden items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 sm:inline-flex">
+                <Info className="h-3 w-3" />
+                {summary.info} info
+              </span>
+            )}
+          </div>
+        ) : (
+          <span className="text-xs text-slate-400 dark:text-slate-500">All clear</span>
+        )}
+      </div>
+      <Link
+        to="/signals"
+        className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+      >
+        View all
+        <ArrowRight className="h-3.5 w-3.5" />
+      </Link>
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const { user } = useAuth()
 
@@ -244,6 +299,9 @@ export default function Dashboard() {
           Welcome back{user?.name ? `, ${user.name.split(' ')[0]}` : ''}. Here is your business at a glance.
         </p>
       </div>
+
+      {/* Signals banner */}
+      <SignalsWidget />
 
       {/* Morning Briefing (full width) */}
       <MorningBriefing />

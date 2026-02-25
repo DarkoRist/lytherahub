@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.jwt_handler import verify_token
-from app.models.database import User, get_db
+from app.models.database import Membership, User, Workspace, get_db
 
 security = HTTPBearer()
 
@@ -33,3 +33,36 @@ async def get_current_user(
             detail="User not found",
         )
     return user
+
+
+async def get_current_workspace(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Workspace:
+    """Return (or auto-create) the workspace for the current user."""
+    result = await db.execute(
+        select(Workspace).where(Workspace.owner_id == user.id)
+    )
+    workspace = result.scalar_one_or_none()
+
+    if workspace is None:
+        # Auto-provision workspace on first access
+        workspace = Workspace(
+            owner_id=user.id,
+            name=f"{user.name}'s Workspace",
+            slug=user.id[:8],
+            default_currency="EUR",
+            tax_rate=0.0,
+        )
+        db.add(workspace)
+        # Also create owner membership
+        await db.flush()
+        membership = Membership(
+            workspace_id=workspace.id,
+            user_id=user.id,
+            role="owner",
+        )
+        db.add(membership)
+        await db.flush()
+
+    return workspace

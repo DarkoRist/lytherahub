@@ -1,0 +1,86 @@
+[
+  {
+    "id": "deal-001",
+    "company_id": "company-001",
+    "contact_id": "contact-001",
+    "title": "CloudTech AG — Annual SaaS License Renewal",
+    "value": 48000,
+    "currency": "EUR",
+    "stage": "negotiation",
+    "probability": 75,
+    "expected_close_date": "2026-03-15T00:00:00",
+    "notes": "Renewing 3-year contract. They want a 10% discount. We can offer 7%."
+  },
+  {
+    "id": "deal-002",
+    "company_id": "company-002",
+    "contact_id": "contact-003",
+    "title": "MediaHub Berlin — Content Management Suite",
+    "value": 22500,
+    "currency": "EUR",
+    "stage": "proposal",
+    "probability": 50,
+    "expected_close_date": "2026-04-01T00:00:00",
+    "notes": "Sent proposal on Feb 10. Awaiting feedback."
+  },
+  {
+    "id": "deal-003",
+    "company_id": "company-003",
+    "contact_id": "contact-004",
+    "title": "FinTech GmbH — Compliance Module",
+    "value": 15000,
+    "currency": "EUR",
+    "stage": "qualified",
+    "probability": 30,
+    "expected_close_date": "2026-05-01T00:00:00",
+    "notes": "Lisa wants to pilot with 3 users first."
+  },
+  {
+    "id": "deal-004",
+    "company_id": "company-004",
+    "contact_id": "contact-005",
+    "title": "RetailChain — Inventory Integration",
+    "value": 75000,
+    "currency": "EUR",
+    "stage": "won",
+    "probability": 100,
+    "expected_close_date": "2026-02-01T00:00:00",
+    "notes": "Contract signed. Implementation starting March 1."
+  },
+  {
+    "id": "deal-005",
+    "company_id": "company-005",
+    "contact_id": "contact-006",
+    "title": "StartupX — Developer API Plan",
+    "value": 9600,
+    "currency": "EUR",
+    "stage": "lead",
+    "probability": 10,
+    "expected_close_date": "2026-06-30T00:00:00",
+    "notes": "Cold outreach. Sarah responded positively to intro email."
+  },
+  {
+    "id": "deal-006",
+    "company_id": "company-001",
+    "contact_id": "contact-002",
+    "title": "CloudTech AG — Professional Services Package",
+    "value": 12000,
+    "currency": "EUR",
+    "stage": "lost",
+    "probability": 0,
+    "expected_close_date": "2026-01-15T00:00:00",
+    "notes": "Lost to competitor. Lower price point. Follow up in Q3."
+  },
+  {
+    "id": "deal-007",
+    "company_id": "company-002",
+    "contact_id": null,
+    "title": "MediaHub Berlin — Analytics Add-on",
+    "value": 5400,
+    "currency": "EUR",
+    "stage": "qualified",
+    "probability": 30,
+    "expected_close_date": "2026-04-30T00:00:00",
+    "notes": "Upsell opportunity tied to CMS deal."
+  }
+]

@@ -1,0 +1,82 @@
+[
+  {
+    "id": "contact-001",
+    "company_id": "company-001",
+    "first_name": "Markus",
+    "last_name": "Weber",
+    "email": "m.weber@cloudtech.de",
+    "phone": "+49 30 123456",
+    "title": "Head of IT",
+    "notes": "Main decision maker for all SaaS purchases. Prefers email contact."
+  },
+  {
+    "id": "contact-002",
+    "company_id": "company-001",
+    "first_name": "Anna",
+    "last_name": "Schmidt",
+    "email": "a.schmidt@cloudtech.de",
+    "phone": "+49 30 123457",
+    "title": "CFO",
+    "notes": "Signs off on all contracts over €10k."
+  },
+  {
+    "id": "contact-003",
+    "company_id": "company-002",
+    "first_name": "Jonas",
+    "last_name": "Müller",
+    "email": "jonas@mediahub.de",
+    "phone": "+49 89 654321",
+    "title": "Procurement Manager",
+    "notes": "Handles all vendor relationships."
+  },
+  {
+    "id": "contact-004",
+    "company_id": "company-003",
+    "first_name": "Lisa",
+    "last_name": "Hoffmann",
+    "email": "lisa.h@fintech-gmbh.de",
+    "phone": null,
+    "title": "CEO",
+    "notes": "Responds quickly to WhatsApp. Met at SaaS Conf 2025."
+  },
+  {
+    "id": "contact-005",
+    "company_id": "company-004",
+    "first_name": "Thomas",
+    "last_name": "Bauer",
+    "email": "t.bauer@retailchain.de",
+    "phone": "+49 211 998877",
+    "title": "Operations Director",
+    "notes": null
+  },
+  {
+    "id": "contact-006",
+    "company_id": "company-005",
+    "first_name": "Sarah",
+    "last_name": "Klein",
+    "email": "sarah.klein@startup-x.com",
+    "phone": "+49 40 776655",
+    "title": "CTO",
+    "notes": "Technical contact, interested in API access."
+  },
+  {
+    "id": "contact-007",
+    "company_id": "company-006",
+    "first_name": "Hans",
+    "last_name": "Brandt",
+    "email": "h.brandt@techsupplies.de",
+    "phone": "+49 211 445566",
+    "title": "Sales Manager",
+    "notes": "Our main contact at TechSupplies GmbH."
+  },
+  {
+    "id": "contact-008",
+    "company_id": null,
+    "first_name": "Elena",
+    "last_name": "Richter",
+    "email": "elena.richter@consultant.de",
+    "phone": "+49 30 887766",
+    "title": "Independent Consultant",
+    "notes": "Referred by CloudTech. Potential new client."
+  }
+]

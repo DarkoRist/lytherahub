@@ -137,7 +137,7 @@ export default function Products() {
         productsApi.list({ search: search || undefined, active_only: true }),
         productsApi.lowStock(),
       ])
-      setProducts(pRes.data.items || [])
+      setProducts((pRes.data?.items) || [])
       setLowStock(lsRes.data || [])
     } catch {
       toast.error('Failed to load products')

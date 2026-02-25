@@ -1,10 +1,10 @@
 import api from './client'
 
 export const workspaceApi = {
-  get: () => api.get('/api/workspace'),
-  update: (data) => api.put('/api/workspace', data),
-  listMembers: () => api.get('/api/workspace/members'),
-  invite: (data) => api.post('/api/workspace/invite', data),
-  updateMember: (id, data) => api.put(`/api/workspace/members/${id}`, data),
-  removeMember: (id) => api.delete(`/api/workspace/members/${id}`),
+  get: () => api.get('/workspace'),
+  update: (data) => api.put('/workspace', data),
+  listMembers: () => api.get('/workspace/members'),
+  invite: (data) => api.post('/workspace/invite', data),
+  updateMember: (id, data) => api.put(`/workspace/members/${id}`, data),
+  removeMember: (id) => api.delete(`/workspace/members/${id}`),
 }

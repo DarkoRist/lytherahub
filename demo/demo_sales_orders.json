@@ -1,0 +1,67 @@
+[
+  {
+    "id": "so-001",
+    "workspace_id": "demo-workspace-001",
+    "order_number": "SO-0001",
+    "company_id": "company-001",
+    "status": "fulfilled",
+    "total_amount": 3427.8,
+    "currency": "EUR",
+    "notes": "Bulk order for Berlin office rollout. Delivered on time.",
+    "due_date": "2026-02-05",
+    "created_at": "2026-01-28T10:00:00Z",
+    "updated_at": "2026-02-03T15:00:00Z"
+  },
+  {
+    "id": "so-002",
+    "workspace_id": "demo-workspace-001",
+    "order_number": "SO-0002",
+    "company_id": "company-005",
+    "status": "fulfilled",
+    "total_amount": 595.0,
+    "currency": "EUR",
+    "notes": "Repeat cable order. Net-30 applies.",
+    "due_date": "2026-02-12",
+    "created_at": "2026-02-05T11:30:00Z",
+    "updated_at": "2026-02-10T10:00:00Z"
+  },
+  {
+    "id": "so-003",
+    "workspace_id": "demo-workspace-001",
+    "order_number": "SO-0003",
+    "company_id": "company-003",
+    "status": "confirmed",
+    "total_amount": 2788.0,
+    "currency": "EUR",
+    "notes": "Poland delivery - customs docs required. Payment on delivery.",
+    "due_date": "2026-03-01",
+    "created_at": "2026-02-14T09:00:00Z",
+    "updated_at": "2026-02-14T09:00:00Z"
+  },
+  {
+    "id": "so-004",
+    "workspace_id": "demo-workspace-001",
+    "order_number": "SO-0004",
+    "company_id": "company-008",
+    "status": "confirmed",
+    "total_amount": 1794.0,
+    "currency": "EUR",
+    "notes": "Synergy acting as reseller. Margin agreed at 15%.",
+    "due_date": "2026-03-05",
+    "created_at": "2026-02-18T14:00:00Z",
+    "updated_at": "2026-02-18T14:00:00Z"
+  },
+  {
+    "id": "so-005",
+    "workspace_id": "demo-workspace-001",
+    "order_number": "SO-0005",
+    "company_id": "company-002",
+    "status": "draft",
+    "total_amount": 981.0,
+    "currency": "EUR",
+    "notes": "Pending proposal approval from Sophie Hartmann.",
+    "due_date": "2026-03-15",
+    "created_at": "2026-02-24T16:00:00Z",
+    "updated_at": "2026-02-24T16:00:00Z"
+  }
+]

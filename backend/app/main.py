@@ -156,6 +156,21 @@ from app.routers.chat import router as chat_router
 from app.routers.tasks import router as tasks_router
 from app.routers.analytics import router as analytics_router
 from app.routers.onboarding import router as onboarding_router
+# Phase 1 — new routers
+from app.routers.workspace import router as workspace_router
+# Phase 2 — contacts, deals, activities
+from app.routers.contacts import router as contacts_router
+from app.routers.deals import router as deals_router
+from app.routers.activities import router as activities_router
+# Phase 3 — signals
+from app.routers.signals import router as signals_router
+from app.routers.companies import router as companies_router
+from app.routers.products import router as products_router
+from app.routers.warehouses import router as warehouses_router
+from app.routers.inventory import router as inventory_router
+from app.routers.sales_orders import router as sales_orders_router
+from app.routers.purchase_orders import router as purchase_orders_router
+from app.routers.attachments import router as attachments_router
 
 app.include_router(auth_router)
 app.include_router(dashboard_router)
@@ -173,6 +188,21 @@ app.include_router(chat_router)
 app.include_router(tasks_router)
 app.include_router(analytics_router)
 app.include_router(onboarding_router)
+# Phase 1
+app.include_router(workspace_router)
+app.include_router(companies_router)
+app.include_router(products_router)
+app.include_router(warehouses_router)
+app.include_router(inventory_router)
+app.include_router(sales_orders_router)
+app.include_router(purchase_orders_router)
+app.include_router(attachments_router)
+# Phase 2
+app.include_router(contacts_router)
+app.include_router(deals_router)
+app.include_router(activities_router)
+# Phase 3
+app.include_router(signals_router)
 
 # ---------------------------------------------------------------------------
 # Global exception handler — prevents stack trace leaks

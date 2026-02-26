@@ -1,7 +1,111 @@
 import { useState, useEffect } from 'react'
-import { Plus, Package, AlertTriangle, Search, Edit2, MoreVertical, ChevronDown, X, Loader2 } from 'lucide-react'
+import { Plus, Package, AlertTriangle, Search, Edit2, MoreVertical, ChevronDown, X, Loader2, Warehouse } from 'lucide-react'
 import { productsApi } from '../api/products'
 import toast from 'react-hot-toast'
+
+/* ─── Stock Detail Panel ──────────────────────────────────────────────── */
+function StockPanel({ product, onClose }) {
+  const [stock, setStock] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    productsApi.getStock(product.id)
+      .then(r => setStock(r.data))
+      .catch(() => toast.error('Failed to load stock'))
+      .finally(() => setLoading(false))
+  }, [product.id])
+
+  return (
+    <div className="fixed inset-y-0 right-0 z-40 w-full max-w-md overflow-y-auto border-l border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 dark:border-slate-700 dark:bg-slate-900">
+        <div>
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Stock Levels</p>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">{product.name}</h2>
+          {product.sku && <p className="text-xs text-slate-400 font-mono">{product.sku}</p>}
+        </div>
+        <button onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+
+      <div className="p-6 space-y-6">
+        {/* Summary */}
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { label: 'On Hand', value: stock?.total_on_hand ?? product.stock_on_hand ?? 0, color: 'text-slate-900 dark:text-white' },
+            { label: 'Reserved', value: stock?.total_reserved ?? 0, color: 'text-amber-600 dark:text-amber-400' },
+            { label: 'Available', value: stock?.total_available ?? product.stock_available ?? 0, color: 'text-emerald-600 dark:text-emerald-400' },
+          ].map(({ label, value, color }) => (
+            <div key={label} className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+              <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
+              <p className={`text-xl font-bold ${color}`}>{Number(value).toFixed(0)}</p>
+              <p className="text-xs text-slate-400">{product.unit}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Reorder level */}
+        <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Reorder Level</span>
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{product.reorder_level} {product.unit}</span>
+          </div>
+          {(stock?.total_on_hand ?? product.stock_on_hand ?? 0) <= product.reorder_level && (
+            <div className="flex items-center gap-1.5 rounded-md bg-amber-50 px-2 py-1.5 text-xs font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Below reorder level — consider restocking
+            </div>
+          )}
+        </div>
+
+        {/* Per-warehouse breakdown */}
+        <div>
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            By Warehouse
+          </h3>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+            </div>
+          ) : stock?.warehouses?.length > 0 ? (
+            <div className="space-y-2">
+              {stock.warehouses.map(w => (
+                <div key={w.warehouse_id} className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Warehouse className="h-4 w-4 text-slate-400" />
+                      <span className="text-sm font-medium text-slate-900 dark:text-white">{w.warehouse_name}</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div>
+                      <span className="text-slate-500">On Hand</span>
+                      <p className="font-semibold text-slate-900 dark:text-white">{w.on_hand}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500">Reserved</span>
+                      <p className="font-semibold text-amber-600 dark:text-amber-400">{w.reserved}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500">Available</span>
+                      <p className="font-semibold text-emerald-600 dark:text-emerald-400">{w.available}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 py-10 dark:border-slate-700">
+              <Warehouse className="mb-2 h-8 w-8 text-slate-300 dark:text-slate-600" />
+              <p className="text-sm text-slate-500">No stock in any warehouse</p>
+              <p className="text-xs text-slate-400">Receive a purchase order to add stock</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const UNITS = ['pcs', 'kg', 'm', 'l', 'box', 'set', 'pair']
 const STOCK_COLOR = (on_hand, reorder_level) => {
@@ -129,6 +233,7 @@ export default function Products() {
   const [search, setSearch] = useState('')
   const [modal, setModal] = useState(null) // null | 'create' | product object
   const [openMenu, setOpenMenu] = useState(null)
+  const [selectedProduct, setSelectedProduct] = useState(null)
 
   const load = async () => {
     setLoading(true)
@@ -226,7 +331,8 @@ export default function Products() {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {displayList.map(p => (
-                <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/40">
+                <tr key={p.id} className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/40"
+                  onClick={() => setSelectedProduct(p)}>
                   <td className="px-4 py-3 font-mono text-xs text-slate-500">{p.sku || '—'}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{p.name}</td>
                   <td className="px-4 py-3 text-slate-500">{p.category || '—'}</td>
@@ -243,7 +349,7 @@ export default function Products() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-slate-500">{p.reorder_level}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     <div className="relative">
                       <button onClick={() => setOpenMenu(openMenu === p.id ? null : p.id)}
                         className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700">
@@ -254,6 +360,10 @@ export default function Products() {
                           <button onClick={() => { setModal(p); setOpenMenu(null) }}
                             className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700">
                             <Edit2 className="h-4 w-4" /> Edit
+                          </button>
+                          <button onClick={() => { setSelectedProduct(p); setOpenMenu(null) }}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700">
+                            <Warehouse className="h-4 w-4" /> View Stock
                           </button>
                           <button onClick={() => handleDeactivate(p.id)}
                             className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
@@ -276,6 +386,10 @@ export default function Products() {
           onClose={() => setModal(null)}
           onSave={handleSave}
         />
+      )}
+
+      {selectedProduct && (
+        <StockPanel product={selectedProduct} onClose={() => setSelectedProduct(null)} />
       )}
     </div>
   )

@@ -8,7 +8,7 @@ from app.auth.dependencies import get_current_user, get_current_workspace
 from app.models.database import Activity, Company, Contact, User, Workspace, get_db
 from app.models.schemas import ContactCreate, ContactResponse, ContactUpdate
 
-router = APIRouter(prefix="/contacts", tags=["contacts"])
+router = APIRouter(prefix="/api/contacts", tags=["contacts"])
 
 
 async def _enrich(contact: Contact, db: AsyncSession) -> dict:

@@ -16,7 +16,7 @@ from app.models.schemas import (
     DealUpdate,
 )
 
-router = APIRouter(prefix="/deals", tags=["deals"])
+router = APIRouter(prefix="/api/deals", tags=["deals"])
 
 
 async def _enrich(deal: Deal, db: AsyncSession) -> dict:

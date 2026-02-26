@@ -22,7 +22,7 @@ from app.models.database import (
 )
 from app.models.schemas import SignalResponse, SignalSummary
 
-router = APIRouter(prefix="/signals", tags=["signals"])
+router = APIRouter(prefix="/api/signals", tags=["signals"])
 
 
 # ---------------------------------------------------------------------------

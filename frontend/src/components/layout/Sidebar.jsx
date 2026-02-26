@@ -1,4 +1,5 @@
 import { NavLink, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import {
   LayoutDashboard,
   Mail,
@@ -21,6 +22,7 @@ import {
   Bell,
   Banknote,
 } from 'lucide-react'
+import { workspaceApi } from '../../api/workspace'
 
 const navGroups = [
   {
@@ -41,18 +43,18 @@ const navGroups = [
     ],
   },
   {
-    label: 'FINANCE',
-    items: [
-      { to: '/invoices', icon: Receipt, label: 'Invoices' },
-    ],
-  },
-  {
     label: 'OPERATIONS',
     items: [
       { to: '/products', icon: Package, label: 'Products' },
       { to: '/inventory', icon: Boxes, label: 'Inventory' },
       { to: '/sales-orders', icon: ShoppingCart, label: 'Sales Orders' },
       { to: '/purchase-orders', icon: ClipboardList, label: 'Purchase Orders' },
+    ],
+  },
+  {
+    label: 'FINANCE',
+    items: [
+      { to: '/invoices', icon: Receipt, label: 'Invoices' },
     ],
   },
   {
@@ -73,19 +75,32 @@ const navGroups = [
 ]
 
 export default function Sidebar({ collapsed, onToggle }) {
+  const [workspaceName, setWorkspaceName] = useState('Workspace')
+
+  useEffect(() => {
+    workspaceApi.get()
+      .then((r) => {
+        const name = r.data?.name || r.data?.workspace?.name
+        if (name) setWorkspaceName(name)
+      })
+      .catch(() => {})
+  }, [])
+
   return (
     <aside
       className={`fixed inset-y-0 left-0 z-30 flex flex-col border-r border-slate-200 bg-white transition-all duration-200 dark:border-slate-700 dark:bg-slate-900 ${
         collapsed ? 'w-16' : 'w-60'
       } hidden md:flex`}
     >
-      {/* Logo */}
+      {/* Logo + workspace name */}
       <Link to="/" className="flex h-16 shrink-0 items-center gap-2.5 border-b border-slate-200 px-4 dark:border-slate-700">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600">
           <span className="text-sm font-bold text-white">L</span>
         </div>
         {!collapsed && (
-          <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white">Lythera</span>
+          <span className="truncate text-base font-bold tracking-tight text-slate-900 dark:text-white">
+            {workspaceName}
+          </span>
         )}
       </Link>
 

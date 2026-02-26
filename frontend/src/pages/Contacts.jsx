@@ -22,7 +22,7 @@ function ContactModal({ contact, onClose, onSaved }) {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    api.get('/clients').then((r) => setCompanies(r.data || [])).catch(() => {})
+    api.get('/companies').then((r) => setCompanies(Array.isArray(r.data) ? r.data : r.data?.items ?? [])).catch(() => {})
   }, [])
 
   const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }))
@@ -177,7 +177,7 @@ export default function Contacts() {
 
   useEffect(() => {
     loadContacts()
-    api.get('/clients').then((r) => setCompanies(r.data || [])).catch(() => {})
+    api.get('/companies').then((r) => setCompanies(Array.isArray(r.data) ? r.data : r.data?.items ?? [])).catch(() => {})
   }, [])
 
   async function loadContacts() {

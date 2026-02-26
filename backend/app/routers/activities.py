@@ -8,7 +8,7 @@ from app.auth.dependencies import get_current_user, get_current_workspace
 from app.models.database import Activity, User, Workspace, get_db
 from app.models.schemas import ActivityCreate, ActivityResponse
 
-router = APIRouter(prefix="/activities", tags=["activities"])
+router = APIRouter(prefix="/api/activities", tags=["activities"])
 
 VALID_ENTITY_TYPES = {"company", "deal", "contact"}
 VALID_ACTIVITY_TYPES = {"note", "call", "email", "meeting", "task"}
